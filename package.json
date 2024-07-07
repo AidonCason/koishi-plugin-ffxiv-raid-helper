@@ -9,14 +9,35 @@
     "dist"
   ],
   "license": "MIT",
-  "scripts": {},
   "keywords": [
     "chatbot",
     "koishi",
     "plugin"
   ],
-  "devDependencies": {},
+  "author": {
+    "name": "Aidon",
+    "email": "silverblade999@outlook.com"
+  },
+  "contributors": [],
+  "homepage": "https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper.git"
+  },
   "peerDependencies": {
     "koishi": "4.17.9"
+  },
+  "koishi": {
+    "description": {
+      "zh": "ff14拼团小助手"
+    },
+    "service": {
+      "required": [],
+      "optional": [],
+      "implements": []
+    },
+    "locales": [
+      "zh"
+    ]
   }
 }
