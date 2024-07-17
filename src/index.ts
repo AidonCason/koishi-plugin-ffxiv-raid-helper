@@ -1,4 +1,4 @@
-import { Context, Dict, Schema, Session, Time, $ } from 'koishi';
+import { Context, Dict, Schema, Session, Time, $, h } from 'koishi';
 import logger from './utils/logger';
 
 export const name = 'ffxiv-raid-helper';
@@ -346,6 +346,67 @@ export function apply(ctx: Context) {
                 .join('\n')
           )
           .join('\n\n')
+      );
+    }
+  });
+
+  ctx.command('导出报名状况').action(async argv => {
+    if (!argv?.session) return;
+    const session = argv.session;
+
+    const one = await ctx.database.get(raid_table_name, {
+      raid_time: { $gt: new Date() }
+    });
+    if (one && one.length > 0) {
+      await session.sendQueued(
+        '请输入编号选择要查看的团，当前有如下团:\n' +
+          one
+            .map(
+              (e, idx) =>
+                '' +
+                (idx + 1) +
+                '.    ' +
+                e.raid_name +
+                '    ' +
+                e.raid_time.toLocaleString()
+            )
+            .join('\n'),
+        messageInterval
+      );
+    } else {
+      return '未查询到当前有团';
+    }
+
+    const code = parseInt(await session.prompt(), 10) || -1;
+    if (!one[code - 1]) {
+      return '团号错误';
+    }
+    const raid_name = one[code - 1].raid_name;
+
+    const sign_up = await ctx.database.get(raid_sign_up_table_name, {
+      raid_name: { $eq: raid_name }
+    });
+    if (!sign_up || sign_up.length == 0) {
+      return '当前报名人数为: 0';
+    } else {
+      // todo 导出csv文件
+      const buffer = Buffer.alloc(1024000);
+      const title =
+        JSON.parse(sign_up[0].content)
+          .map(p => p[0])
+          .join(',') + '\n';
+      buffer.write(title);
+      sign_up.forEach(s =>
+        buffer.write(
+          JSON.parse(s.content)
+            .map(p => p[1])
+            .join(',') + '\n'
+        )
+      );
+      session.sendQueued(
+        h.file(buffer, 'text/csv', {
+          title: raid_name + '_' + new Date().toLocaleDateString()
+        })
       );
     }
   });
