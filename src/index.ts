@@ -199,7 +199,9 @@ const onQuestion = async (
 
 export function apply(ctx: Context) {
   // write your plugin here
-  const raid_table_name = 'ffxiv_raid_helper_raid';
+  const table_prefix = 'ffxiv_raid_helper_';
+  const raid_table_name = table_prefix + 'raid';
+  const raid_sign_up_table_name = table_prefix + 'sign_up';
   // create table
   ctx.model.extend(
     raid_table_name,
@@ -238,7 +240,6 @@ export function apply(ctx: Context) {
       if (one && one.length > 0) {
         return '团已经存在！';
       }
-      new Date();
       await ctx.database.create(raid_table_name, {
         raid_name,
         max_members: 40,
@@ -261,7 +262,6 @@ export function apply(ctx: Context) {
     const one = await ctx.database.get(raid_table_name, {
       raid_time: { $gt: new Date() }
     });
-    logger.info(JSON.stringify(one));
     if (one && one.length > 0) {
       return (
         '当前有如下团:\n' +
