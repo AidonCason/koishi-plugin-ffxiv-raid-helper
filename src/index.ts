@@ -405,8 +405,8 @@ export function apply(ctx: Context) {
           )
           .join('\n');
       const buffer = new TextEncoder().encode(title);
-      logger.debug(h.file(buffer, 'txt/csv'));
-      await session.sendQueued(h.file(buffer, 'txt/csv'));
+      logger.info(h.file(buffer, 'txt/csv', { title: '1.csv' }));
+      await session.sendQueued(h.file(buffer, 'txt/csv', { title: '1.csv' }));
     }
   });
 
