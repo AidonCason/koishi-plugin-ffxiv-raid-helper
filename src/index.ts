@@ -243,7 +243,7 @@ export function apply(ctx: Context) {
         raid_name,
         max_members: 40,
         raid_leader: session.userId,
-        raid_time,
+        raid_time: raid_time.toLocaleString(),
         raid_server: '陆行鸟',
         allow_sign_up: true,
         created_at: new Date(),
