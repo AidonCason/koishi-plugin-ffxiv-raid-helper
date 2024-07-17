@@ -208,7 +208,7 @@ export function apply(ctx: Context) {
       raid_name: 'string', // 团名
       max_members: 'unsigned', // 接纳报名的最大人数
       raid_leader: 'string', // 指挥qq
-      raid_time: 'string', // 开团时间
+      raid_time: 'timestamp', // 开团时间
       raid_server: 'string', // 开团的服务器
       allow_sign_up: 'boolean',
       created_at: 'timestamp',
@@ -243,7 +243,7 @@ export function apply(ctx: Context) {
         raid_name,
         max_members: 40,
         raid_leader: session.userId,
-        raid_time: raid_time.toLocaleString(),
+        raid_time: raid_time,
         raid_server: '陆行鸟',
         allow_sign_up: true,
         created_at: new Date(),
