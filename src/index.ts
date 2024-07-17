@@ -1,4 +1,4 @@
-import { Context, Dict, Schema, Session, Time } from 'koishi';
+import { Context, Dict, Schema, Session, Time, $ } from 'koishi';
 import logger from './utils/logger';
 
 export const name = 'ffxiv-raid-helper';
@@ -224,6 +224,24 @@ export function apply(ctx: Context) {
     }
   );
 
+  ctx.model.extend(
+    raid_sign_up_table_name,
+    {
+      id: 'unsigned',
+      raid_name: 'string', // 团名
+      user_id: 'string', // 用户id
+      content: 'string', // 报名内容
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      unique: [['raid_name', 'user_id']], // 同一团一人只能报名一次
+      foreign: null,
+      autoInc: true
+    }
+  );
+
   // todo
   ctx
     .command('开团 <raid_name:string> <raid_time:date>')
@@ -291,6 +309,44 @@ export function apply(ctx: Context) {
       messageInterval
     );
 
+    const one = await ctx.database.get(raid_table_name, {
+      raid_time: { $gt: new Date() }
+    });
+    if (one && one.length > 0) {
+      await session.sendQueued(
+        '请输入编号选择要报名的团，当前有如下团:\n' +
+          one
+            .map(
+              (e, idx) =>
+                '' +
+                (idx + 1) +
+                '.    ' +
+                e.raid_name +
+                '    ' +
+                e.raid_time.toLocaleString()
+            )
+            .join('\n'),
+        messageInterval
+      );
+    } else {
+      return '未查询到当前有团，请在开团后报名';
+    }
+
+    const code = parseInt(await session.prompt(), 10) || -1;
+    if (!one[code - 1]) {
+      return '团号错误，请重新开始报名流程';
+    }
+    const raid_name = one[code - 1].raid_name;
+
+    const sign_up = await ctx.database.get(raid_sign_up_table_name, {
+      user_id: { $eq: session.userId },
+      raid_name: { $eq: raid_name }
+    });
+    if (sign_up && sign_up.length > 0) {
+      return '已经报名过该团!';
+    }
+    logger.info(sign_up);
+
     const sheet = [...questions].reverse();
     const results = {};
     while (sheet.length > 0) {
@@ -307,6 +363,7 @@ export function apply(ctx: Context) {
     // todo 通用一点
     const output_pairs = [];
     output_pairs.push(['报名内容', '']);
+    output_pairs.push(['团次', raid_name]);
     output_pairs.push(['区服', servers[results['3'] - 1]]);
     output_pairs.push(['游戏ID', results['4']]);
     output_pairs.push(['初见', base_choice[1 - results['2']]]);
@@ -332,6 +389,13 @@ export function apply(ctx: Context) {
     await session.sendQueued(
       output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
     );
+    await ctx.database.create(raid_sign_up_table_name, {
+      raid_name,
+      user_id: session.userId,
+      content: JSON.stringify(output_pairs),
+      created_at: new Date(),
+      updated_at: new Date()
+    });
     return '报名提交成功!请关注群公告里面的报名结果~';
   });
 }
