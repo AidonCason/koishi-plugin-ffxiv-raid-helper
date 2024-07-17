@@ -254,7 +254,6 @@ export function apply(ctx: Context) {
       const one = await ctx.database.get(raid_table_name, {
         raid_name: { $eq: raid_name }
       });
-      logger.info(JSON.stringify(one));
       if (one && one.length > 0) {
         return '团已经存在！';
       }
@@ -302,7 +301,6 @@ export function apply(ctx: Context) {
   ctx.command('报名').action(async argv => {
     if (!argv?.session) return;
     const session = argv.session;
-    logger.info('开始报名');
     // 免责条款
     await session.sendQueued(
       '欢迎报名，请仔细阅读并回答以下问题即可完成报名',
@@ -338,6 +336,14 @@ export function apply(ctx: Context) {
     }
     const raid_name = one[code - 1].raid_name;
 
+    // todo 改成正经count
+    const sign_ups = await ctx.database.get(raid_sign_up_table_name, {
+      raid_name: { $eq: raid_name }
+    });
+    if (sign_ups && sign_ups.length >= one[code - 1].max_members) {
+      return '已经报名满了，请下次再来或查看其他团';
+    }
+
     const sign_up = await ctx.database.get(raid_sign_up_table_name, {
       user_id: { $eq: session.userId },
       raid_name: { $eq: raid_name }
@@ -345,7 +351,6 @@ export function apply(ctx: Context) {
     if (sign_up && sign_up.length > 0) {
       return '已经报名过该团!';
     }
-    logger.info(sign_up);
 
     const sheet = [...questions].reverse();
     const results = {};
