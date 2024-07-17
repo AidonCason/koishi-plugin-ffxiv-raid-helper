@@ -292,10 +292,111 @@ export function apply(ctx: Context) {
   });
 
   // todo
-  ctx.command('查看报名结果').action(async argv => {
+  ctx.command('查看报名状况').action(async argv => {
     if (!argv?.session) return;
     const session = argv.session;
-    session.sendQueued('结果为...');
+
+    const one = await ctx.database.get(raid_table_name, {
+      raid_time: { $gt: new Date() }
+    });
+    if (one && one.length > 0) {
+      await session.sendQueued(
+        '请输入编号选择要查看的团，当前有如下团:\n' +
+          one
+            .map(
+              (e, idx) =>
+                '' +
+                (idx + 1) +
+                '.    ' +
+                e.raid_name +
+                '    ' +
+                e.raid_time.toLocaleString()
+            )
+            .join('\n'),
+        messageInterval
+      );
+    } else {
+      return '未查询到当前有团';
+    }
+
+    const code = parseInt(await session.prompt(), 10) || -1;
+    if (!one[code - 1]) {
+      return '团号错误';
+    }
+    const raid_name = one[code - 1].raid_name;
+
+    const sign_up = await ctx.database.get(raid_sign_up_table_name, {
+      raid_name: { $eq: raid_name }
+    });
+    if (!sign_up || sign_up.length == 0) {
+      return '当前报名人数为: 0';
+    } else {
+      return (
+        '当前报名人数为: ' +
+        sign_up.length +
+        '\n' +
+        sign_up
+          .map(
+            (s, idx) =>
+              '序号: ' +
+              (idx + 1) +
+              '\n' +
+              JSON.parse(s.content)
+                .map(j => j[0] + ': ' + j[1])
+                .join('\n')
+          )
+          .join('\n\n')
+      );
+    }
+  });
+
+  ctx.command('查看报名申请').action(async argv => {
+    if (!argv?.session) return;
+    const session = argv.session;
+
+    const one = await ctx.database.get(raid_table_name, {
+      raid_time: { $gt: new Date() }
+    });
+    if (one && one.length > 0) {
+      await session.sendQueued(
+        '请输入编号选择要查看的团，当前有如下团:\n' +
+          one
+            .map(
+              (e, idx) =>
+                '' +
+                (idx + 1) +
+                '.    ' +
+                e.raid_name +
+                '    ' +
+                e.raid_time.toLocaleString()
+            )
+            .join('\n'),
+        messageInterval
+      );
+    } else {
+      return '未查询到当前有团';
+    }
+
+    const code = parseInt(await session.prompt(), 10) || -1;
+    if (!one[code - 1]) {
+      return '团号错误';
+    }
+    const raid_name = one[code - 1].raid_name;
+
+    const sign_up = await ctx.database.get(raid_sign_up_table_name, {
+      user_id: { $eq: session.userId },
+      raid_name: { $eq: raid_name }
+    });
+    if (sign_up && sign_up.length > 0) {
+      return (
+        '已经提交报名申请:\n' +
+        JSON.parse(sign_up[0].content)
+          .map(j => j[0] + ': ' + j[1])
+          .join('\n')
+      );
+    } else {
+      return '未报名该团!';
+    }
   });
 
   ctx.command('报名').action(async argv => {
