@@ -390,24 +390,23 @@ export function apply(ctx: Context) {
       return '当前报名人数为: 0';
     } else {
       // todo 导出csv文件
-      const buffer = Buffer.alloc(1024000);
       const title =
         JSON.parse(sign_up[0].content)
+          .slice(2)
           .map(p => p[0])
-          .join(',') + '\n';
-      buffer.write(title);
-      sign_up.forEach(s =>
-        buffer.write(
-          JSON.parse(s.content)
-            .map(p => p[1])
-            .join(',') + '\n'
-        )
-      );
-      session.sendQueued(
-        h.file(buffer, 'text/csv', {
-          title: raid_name + '_' + new Date().toLocaleDateString()
-        })
-      );
+          .join(',') +
+        '\n' +
+        sign_up
+          .map(s =>
+            JSON.parse(s.content)
+              .slice(2)
+              .map(p => p[1])
+              .join(',')
+          )
+          .join('\n');
+      const buffer = new TextEncoder().encode(title);
+      logger.debug(h.file(buffer, 'txt/csv'));
+      await session.sendQueued(h.file(buffer, 'txt/csv'));
     }
   });
 
