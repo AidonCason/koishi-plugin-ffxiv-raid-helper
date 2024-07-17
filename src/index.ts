@@ -3,6 +3,11 @@ import logger from './utils/logger';
 
 export const name = 'ffxiv-raid-helper';
 
+// 前置服务
+export const inject = {
+  required: ['database']
+};
+
 export interface Config {}
 
 export const Config: Schema<Config> = Schema.object({});
@@ -194,12 +199,58 @@ const onQuestion = async (
 
 export function apply(ctx: Context) {
   // write your plugin here
+  const raid_table_name = 'ffxiv_raid_helper_raid';
+  // create table
+  ctx.model.extend(
+    raid_table_name,
+    {
+      id: 'unsigned',
+      raid_name: 'string', // 团名
+      max_members: 'unsigned', // 接纳报名的最大人数
+      raid_leader: 'string', // 指挥qq
+      raid_time: 'string', // 开团时间
+      raid_server: 'string', // 开团的服务器
+      allow_sign_up: 'boolean',
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      unique: ['raid_name'],
+      foreign: null,
+      autoInc: true
+    }
+  );
+
   // todo
-  ctx.command('开团').action(async argv => {
-    if (!argv?.session) return;
-    const session = argv.session;
-    session.sendQueued('开团成功');
-  });
+  ctx
+    .command('开团 <raid_name:string> <raid_time:date>')
+    .action(async (argv, raid_name: string, raid_time: Date) => {
+      if (!argv?.session) return;
+      if (!ctx.database) {
+        return '数据库未就绪，请联系管理员';
+      }
+      const session = argv.session;
+      const one = await ctx.database.get(raid_table_name, {
+        raid_name: { $eq: raid_name }
+      });
+      logger.info(JSON.stringify(one));
+      if (one && one.length > 0) {
+        return '团已经存在！';
+      }
+      new Date();
+      await ctx.database.create(raid_table_name, {
+        raid_name,
+        max_members: 40,
+        raid_leader: session.userId,
+        raid_time,
+        raid_server: '陆行鸟',
+        allow_sign_up: true,
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+      return '开团成功!';
+    });
 
   // todo
   ctx.command('查看报名结果').action(async argv => {
