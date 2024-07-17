@@ -138,7 +138,7 @@ const questions: ReadonlyArray<Question> = [
   },
   {
     label: '9',
-    content: '请您输入角色**现有红色**的战斗勋章层数:\n',
+    content: '请您输入角色现有红色的战斗勋章层数:\n',
     answer_range: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
   },
   // {
