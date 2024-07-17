@@ -252,6 +252,28 @@ export function apply(ctx: Context) {
       return '开团成功!';
     });
 
+  ctx.command('查看当前团').action(async argv => {
+    if (!argv?.session) return;
+    if (!ctx.database) {
+      return '数据库未就绪，请联系管理员';
+    }
+    const session = argv.session;
+    const one = await ctx.database.get(raid_table_name, {
+      raid_time: { $gt: new Date() }
+    });
+    logger.info(JSON.stringify(one));
+    if (one && one.length > 0) {
+      return (
+        '当前有如下团:\n' +
+        one
+          .map(e => e.raid_name + '    ' + e.raid_time.toLocaleString())
+          .join('\n')
+      );
+    } else {
+      return '未查询到当前有团';
+    }
+  });
+
   // todo
   ctx.command('查看报名结果').action(async argv => {
     if (!argv?.session) return;
