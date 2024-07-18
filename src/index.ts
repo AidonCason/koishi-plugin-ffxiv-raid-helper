@@ -420,12 +420,15 @@ export function apply(ctx: Context) {
       const buffer = new TextEncoder().encode(title);
 
       const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
-      const file_name = raid_name + '-';
-      raid.raid_time
-        .toLocaleString('zh-CN', date_locale_options)
-        .replaceAll('/', '')
-        .replaceAll(' ', '')
-        .replaceAll(':', '');
+      const file_name =
+        raid_name +
+        '-' +
+        raid.raid_time
+          .toLocaleString('zh-CN', date_locale_options)
+          .replaceAll('/', '')
+          .replaceAll(' ', '')
+          .replaceAll(':', '') +
+        '.csv';
       const file_path = path.join(root, file_name);
       await fs.mkdir(root, { recursive: true });
       await fs.writeFile(file_path, buffer, 'utf8');
