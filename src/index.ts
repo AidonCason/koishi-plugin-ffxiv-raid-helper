@@ -2,6 +2,7 @@ import { Context, Dict, Schema, Session, Time, h } from 'koishi';
 import logger from './utils/logger';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 
 export const name = 'ffxiv-raid-helper';
 
@@ -432,9 +433,10 @@ export function apply(ctx: Context) {
       const file_path = path.join(root, file_name);
       await fs.mkdir(root, { recursive: true });
       await fs.writeFile(file_path, buffer, 'utf8');
+      const h_file = h.file(pathToFileURL(path.resolve(root, file_name)).href);
 
-      logger.info(h.file('file:' + file_path));
-      await session.sendQueued(h.file('file:' + file_path));
+      logger.info(h_file);
+      await session.sendQueued(h_file);
       // logger.info(h.file(buffer, 'txt/csv', { title: '1.csv' }));
       // await session.sendQueued(h.file(buffer, 'txt/csv', { title: '1.csv' }));
     }
