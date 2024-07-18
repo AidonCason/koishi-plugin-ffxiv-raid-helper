@@ -1,11 +1,13 @@
-import { Context, Dict, Schema, Session, Time, $, h } from 'koishi';
+import { Context, Dict, Schema, Session, Time, h } from 'koishi';
 import logger from './utils/logger';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 export const name = 'ffxiv-raid-helper';
 
 // 前置服务
 export const inject = {
-  required: ['database']
+  required: ['database', 'assets']
 };
 
 export interface Config {}
@@ -151,6 +153,16 @@ const questions: ReadonlyArray<Question> = [
     content: '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~'
   }
 ];
+
+const date_locale_options: Intl.DateTimeFormatOptions = {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false
+};
 
 const onQuestion = async (
   session: Session,
@@ -378,10 +390,11 @@ export function apply(ctx: Context) {
     }
 
     const code = parseInt(await session.prompt(), 10) || -1;
-    if (!one[code - 1]) {
+    const raid = one[code - 1];
+    if (!raid) {
       return '团号错误';
     }
-    const raid_name = one[code - 1].raid_name;
+    const raid_name = raid.raid_name;
 
     const sign_up = await ctx.database.get(raid_sign_up_table_name, {
       raid_name: { $eq: raid_name }
@@ -405,8 +418,22 @@ export function apply(ctx: Context) {
           )
           .join('\n');
       const buffer = new TextEncoder().encode(title);
-      logger.info(h.file(buffer, 'txt/csv', { title: '1.csv' }));
-      await session.sendQueued(h.file(buffer, 'txt/csv', { title: '1.csv' }));
+
+      const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
+      const file_name = raid_name + '-';
+      raid.raid_time
+        .toLocaleString('zh-CN', date_locale_options)
+        .replaceAll('/', '')
+        .replaceAll(' ', '')
+        .replaceAll(':', '');
+      const file_path = path.join(root, file_name);
+      await fs.mkdir(root, { recursive: true });
+      await fs.writeFile(file_path, buffer, 'utf8');
+
+      logger.info(h.file('file:' + file_path));
+      await session.sendQueued(h.file('file:' + file_path));
+      // logger.info(h.file(buffer, 'txt/csv', { title: '1.csv' }));
+      // await session.sendQueued(h.file(buffer, 'txt/csv', { title: '1.csv' }));
     }
   });
 
