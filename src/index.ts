@@ -3,6 +3,7 @@ import logger from './utils/logger';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
+import {} from 'koishi-plugin-adapter-onebot';
 
 export const name = 'ffxiv-raid-helper';
 
@@ -433,12 +434,32 @@ export function apply(ctx: Context) {
       const file_path = path.join(root, file_name);
       await fs.mkdir(root, { recursive: true });
       await fs.writeFile(file_path, buffer, 'utf8');
-      const h_file = h.image(pathToFileURL(path.resolve(root, file_name)).href);
+      if (session.platform && session.platform == 'onebot') {
+        const file_path = pathToFileURL(path.resolve(root, file_name)).href;
+        logger.info('to send:{}', file_path);
+        if (session.channelId.startsWith('private:')) {
+          session.onebot.uploadPrivateFile(
+            session.userId,
+            file_path,
+            file_name
+          );
+        } else {
+          session.onebot.uploadGroupFile(
+            session.channelId,
+            file_path,
+            file_name
+          );
+        }
+      } else if (session.platform && session.platform == 'slack') {
+        const h_file = h.image(
+          pathToFileURL(path.resolve(root, file_name)).href
+        );
 
-      logger.info(h_file);
-      await session.sendQueued(h_file);
-      // logger.info(h.file(buffer, 'txt/csv', { title: '1.csv' }));
-      // await session.sendQueued(h.file(buffer, 'txt/csv', { title: '1.csv' }));
+        logger.info(h_file);
+        await session.sendQueued(h_file);
+      } else {
+        return '尚不支持的导出平台';
+      }
     }
   });
 
