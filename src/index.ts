@@ -438,17 +438,21 @@ export function apply(ctx: Context) {
         const file_path = pathToFileURL(path.resolve(root, file_name)).href;
         logger.info('to send:{}', file_path);
         if (session.channelId.startsWith('private:')) {
-          session.onebot.uploadPrivateFile(
-            session.userId,
-            file_path,
-            file_name
-          );
+          await session.bot.internal.sendPrivateMsg(session.userId, {
+            type: 'file',
+            data: {
+              file: file_path,
+              name: file_name
+            }
+          });
         } else {
-          session.onebot.uploadGroupFile(
-            session.channelId,
-            file_path,
-            file_name
-          );
+          await session.bot.internal.sendGroupMsg(session.userId, {
+            type: 'file',
+            data: {
+              file: file_path,
+              name: file_name
+            }
+          });
         }
       } else if (session.platform && session.platform == 'slack') {
         const h_file = h.image(
