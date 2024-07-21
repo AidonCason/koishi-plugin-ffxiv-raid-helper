@@ -433,7 +433,7 @@ export function apply(ctx: Context) {
       const file_path = path.join(root, file_name);
       await fs.mkdir(root, { recursive: true });
       await fs.writeFile(file_path, buffer, 'utf8');
-      const h_file = h.file(pathToFileURL(path.resolve(root, file_name)).href);
+      const h_file = h.image(pathToFileURL(path.resolve(root, file_name)).href);
 
       logger.info(h_file);
       await session.sendQueued(h_file);
