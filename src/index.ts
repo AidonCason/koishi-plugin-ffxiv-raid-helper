@@ -448,7 +448,7 @@ export function apply(ctx: Context) {
             }
           ]);
         } else {
-          await session.onebot.sendGroupMsg(session.userId, [
+          await session.onebot.sendGroupMsg(session.channelId, [
             {
               type: 'file',
               data: {
