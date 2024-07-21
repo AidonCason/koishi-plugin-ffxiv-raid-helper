@@ -435,29 +435,35 @@ export function apply(ctx: Context) {
       await fs.mkdir(root, { recursive: true });
       await fs.writeFile(file_path, buffer, 'utf8');
       if (session.platform && session.platform == 'onebot') {
-        const file_path = pathToFileURL(path.resolve(root, file_name)).href;
-        logger.info('to send:{}', file_path);
-        if (session.channelId.startsWith('private:')) {
-          await session.onebot.sendPrivateMsg(session.userId, [
-            {
-              type: 'file',
-              data: {
-                file: file_path,
-                name: file_name
-              }
-            }
-          ]);
-        } else {
-          await session.onebot.sendGroupMsg(session.channelId, [
-            {
-              type: 'file',
-              data: {
-                file: file_path,
-                name: file_name
-              }
-            }
-          ]);
-        }
+        // const file_path = pathToFileURL(path.resolve(root, file_name)).href;
+        // logger.info('to send:{}', file_path);
+        // if (session.channelId.startsWith('private:')) {
+        //   await session.onebot.sendPrivateMsg(session.userId, [
+        //     {
+        //       type: 'file',
+        //       data: {
+        //         file: file_path,
+        //         name: file_name
+        //       }
+        //     }
+        //   ]);
+        // } else {
+        //   await session.onebot.sendGroupMsg(session.channelId, [
+        //     {
+        //       type: 'file',
+        //       data: {
+        //         file: file_path,
+        //         name: file_name
+        //       }
+        //     }
+        //   ]);
+        // }
+        const h_file = h.file(
+          pathToFileURL(path.resolve(root, file_name)).href
+        );
+
+        logger.info(h_file);
+        await session.sendQueued(h_file);
       } else if (session.platform && session.platform == 'slack') {
         const h_file = h.image(
           pathToFileURL(path.resolve(root, file_name)).href
