@@ -440,7 +440,7 @@ export function apply(ctx: Context) {
         '.csv';
       const file_path = path.join(root, file_name);
       await fs.mkdir(root, { recursive: true });
-      await fs.writeFile(file_path, buffer, 'utf8');
+      await fs.writeFile(file_path, buffer, { encoding: 'utf8' });
       if (session.platform && session.platform == 'onebot') {
         const file_path = pathToFileURL(path.resolve(root, file_name)).href;
         logger.debug('to send:{}', file_path);
