@@ -17,6 +17,7 @@ export interface Config {}
 export const Config: Schema<Config> = Schema.object({});
 
 const messageInterval = 3 * Time.second;
+const locale_defualt: string = 'zh-CN';
 
 const enum AnswerType {
   String = 0,
@@ -297,7 +298,10 @@ export function apply(ctx: Context) {
       return (
         '当前有如下团:\n' +
         one
-          .map(e => e.raid_name + '    ' + e.raid_time.toLocaleString())
+          .map(
+            e =>
+              e.raid_name + '    ' + e.raid_time.toLocaleString(locale_defualt)
+          )
           .join('\n')
       );
     } else {
@@ -324,7 +328,7 @@ export function apply(ctx: Context) {
                 '.    ' +
                 e.raid_name +
                 '    ' +
-                e.raid_time.toLocaleString()
+                e.raid_time.toLocaleString(locale_defualt)
             )
             .join('\n'),
         messageInterval
@@ -385,7 +389,7 @@ export function apply(ctx: Context) {
                 '.    ' +
                 e.raid_name +
                 '    ' +
-                e.raid_time.toLocaleString()
+                e.raid_time.toLocaleString(locale_defualt)
             )
             .join('\n'),
         messageInterval
@@ -429,7 +433,7 @@ export function apply(ctx: Context) {
         raid_name +
         '-' +
         raid.raid_time
-          .toLocaleString('zh-CN', date_locale_options)
+          .toLocaleString(locale_defualt, date_locale_options)
           .replaceAll('/', '')
           .replaceAll(' ', '')
           .replaceAll(':', '') +
@@ -491,7 +495,7 @@ export function apply(ctx: Context) {
                 '.    ' +
                 e.raid_name +
                 '    ' +
-                e.raid_time.toLocaleString()
+                e.raid_time.toLocaleString(locale_defualt)
             )
             .join('\n'),
         messageInterval
@@ -545,7 +549,7 @@ export function apply(ctx: Context) {
                 '.    ' +
                 e.raid_name +
                 '    ' +
-                e.raid_time.toLocaleString()
+                e.raid_time.toLocaleString(locale_defualt)
             )
             .join('\n'),
         messageInterval
