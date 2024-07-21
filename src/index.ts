@@ -367,6 +367,9 @@ export function apply(ctx: Context) {
   ctx.command('导出报名状况').action(async argv => {
     if (!argv?.session) return;
     const session = argv.session;
+    if (session.platform! in ['onebot', 'slack', 'sandbox']) {
+      return '尚未支持的导出平台';
+    }
 
     const one = await ctx.database.get(raid_table_name, {
       raid_time: { $gt: new Date() }
@@ -435,45 +438,38 @@ export function apply(ctx: Context) {
       await fs.mkdir(root, { recursive: true });
       await fs.writeFile(file_path, buffer, 'utf8');
       if (session.platform && session.platform == 'onebot') {
-        // const file_path = pathToFileURL(path.resolve(root, file_name)).href;
-        // logger.info('to send:{}', file_path);
-        // if (session.channelId.startsWith('private:')) {
-        //   await session.onebot.sendPrivateMsg(session.userId, [
-        //     {
-        //       type: 'file',
-        //       data: {
-        //         file: file_path,
-        //         name: file_name
-        //       }
-        //     }
-        //   ]);
-        // } else {
-        //   await session.onebot.sendGroupMsg(session.channelId, [
-        //     {
-        //       type: 'file',
-        //       data: {
-        //         file: file_path,
-        //         name: file_name
-        //       }
-        //     }
-        //   ]);
-        // }
-        const h_file = h.file(
-          pathToFileURL(path.resolve(root, file_name)).href
-        );
-
-        logger.info(h_file);
-        await session.sendQueued(h_file);
+        const file_path = pathToFileURL(path.resolve(root, file_name)).href;
+        logger.debug('to send:{}', file_path);
+        if (session.channelId.startsWith('private:')) {
+          await session.onebot.sendPrivateMsg(session.userId, [
+            {
+              type: 'file',
+              data: {
+                file: file_path,
+                name: file_name
+              }
+            }
+          ]);
+        } else {
+          await session.onebot.sendGroupMsg(session.channelId, [
+            {
+              type: 'file',
+              data: {
+                file: file_path,
+                name: file_name
+              }
+            }
+          ]);
+        }
       } else if (session.platform && session.platform == 'slack') {
         const h_file = h.image(
           pathToFileURL(path.resolve(root, file_name)).href
         );
 
-        logger.info(h_file);
+        logger.debug(h_file);
         await session.sendQueued(h_file);
-      } else {
-        return '尚不支持的导出平台';
       }
+      logger.warn('尚不支持的导出平台');
     }
   });
 
