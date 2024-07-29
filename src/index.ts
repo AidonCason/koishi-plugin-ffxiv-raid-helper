@@ -51,6 +51,7 @@ export function apply(ctx: Context, config: Config) {
       raid_name: 'string', // 团名
       user_id: 'string', // 用户id
       content: 'string', // 报名内容
+      history_content: 'string', // 报名内容
       created_at: 'timestamp',
       updated_at: 'timestamp'
     },
