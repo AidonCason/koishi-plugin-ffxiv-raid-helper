@@ -1,4 +1,4 @@
-import { Argv, Context, h } from 'koishi';
+import { $, Argv, Context, h } from 'koishi';
 import { raid_sign_up_table_name, raid_table_name } from '../constant/common';
 import { date_locale_options, locale_settings } from '../utils/locale';
 import {} from 'koishi-plugin-adapter-onebot';
@@ -53,6 +53,12 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const one = await ctx.database.get(raid_table_name, {
     raid_time: { $gt: new Date() }
   });
+  const raids = one.map(raid => raid.raid_name);
+  const counts = await ctx.database
+    .select(raid_sign_up_table_name)
+    .groupBy('raid_name', { count: row => $.count(row.id) })
+    .where(row => $.in(row.raid_name, raids))
+    .execute();
   if (one && one.length > 0) {
     return (
       '当前有如下团:\n' +
@@ -60,8 +66,12 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
         .map(
           e =>
             e.raid_name +
-            '    ' +
-            e.raid_time.toLocaleString(locale_settings.current)
+            '    时间：' +
+            e.raid_time.toLocaleString(locale_settings.current) +
+            '    报名人数：' +
+            (counts.find(d => d.raid_name == e.raid_name)?.count ?? 0) +
+            '/' +
+            e.max_members
         )
         .join('\n')
     );
