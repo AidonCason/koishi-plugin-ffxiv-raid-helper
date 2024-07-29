@@ -129,3 +129,5 @@ const questions: ReadonlyArray<Question> = [
     content: '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~'
   }
 ];
+
+export { base_choice, questions, servers, duties };
