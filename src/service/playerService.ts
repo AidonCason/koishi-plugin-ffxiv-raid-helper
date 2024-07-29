@@ -6,7 +6,13 @@ import {
   raid_table_name
 } from '../constant/common';
 import { locale_settings } from '../utils/locale';
-import { base_choice, duties, questions, servers } from '../constant/question';
+import {
+  base_choice,
+  duties,
+  questions,
+  servers,
+  Question
+} from '../constant/question';
 
 const onQuestion = async (
   config: Config,

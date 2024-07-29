@@ -1,5 +1,6 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
+import {} from './constant/db';
 import { raid_sign_up_table_name, raid_table_name } from './constant/common';
 import {
   checkDetailHandler,
@@ -27,6 +28,7 @@ export * from './config/settings';
 export function apply(ctx: Context, config: Config) {
   // write your plugin here
   // create table
+
   ctx.model.extend(
     raid_table_name,
     {

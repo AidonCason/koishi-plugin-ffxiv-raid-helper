@@ -130,4 +130,4 @@ const questions: ReadonlyArray<Question> = [
   }
 ];
 
-export { base_choice, questions, servers, duties };
+export { base_choice, questions, servers, duties, Question };
