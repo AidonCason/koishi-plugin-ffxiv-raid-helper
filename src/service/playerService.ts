@@ -13,6 +13,7 @@ import {
   servers,
   Question
 } from '../constant/question';
+import { noticeToGroup, noticeToPrivage } from './noticeService';
 
 const onQuestion = async (
   config: Config,
@@ -152,6 +153,34 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   ]);
   output_pairs.push(['红色勋章层数', results['9']]);
   output_pairs.push(['留言', results['11']]);
+
+  if (config.notice_users.length > 0) {
+    config.notice_users.forEach(user => {
+      setTimeout(() => {
+        noticeToPrivage(
+          ctx,
+          config,
+          session.bot,
+          user,
+          `${raid_name} 收到一份新的报名表`
+        );
+      }, config.message_interval);
+    });
+  }
+
+  if (config.notice_groups.length > 0) {
+    config.notice_groups.forEach(group => {
+      setTimeout(() => {
+        noticeToGroup(
+          ctx,
+          config,
+          session.bot,
+          group,
+          `${raid_name} 收到一份新的报名表`
+        );
+      }, config.message_interval);
+    });
+  }
 
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
