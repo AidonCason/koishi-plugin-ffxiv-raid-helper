@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-ffxiv-raid-helper",
   "description": "ff14拼团小助手",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -25,7 +25,8 @@
     "url": "git+https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper.git"
   },
   "peerDependencies": {
-    "koishi": "4.17.9"
+    "koishi": "4.17.9",
+    "iconv-lite": "^0.6.2"
   },
   "koishi": {
     "description": {
