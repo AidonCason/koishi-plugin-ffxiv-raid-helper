@@ -20,7 +20,7 @@ const noticeToPrivage = async (
     logger.warn(`要推送的用户${user_id}不是bot:${bot.selfId}的好友`);
     return;
   }
-  bot.sendMessage(user_id, message);
+  bot.sendPrivateMessage(user_id, message);
 };
 
 const noticeToGroup = async (
