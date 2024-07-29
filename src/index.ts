@@ -7,7 +7,11 @@ import {
   exportHandler,
   openRaidHandler
 } from './service/managerService';
-import { applyHandler, checkSelfHandler } from './service/playerService';
+import {
+  applyHandler,
+  checkSelfHandler,
+  contactLeaderHandler
+} from './service/playerService';
 
 // 插件名
 export const name = 'ffxiv-raid-helper';
@@ -89,5 +93,9 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.command('查看报名申请').action(async argv => {
     return await checkSelfHandler(ctx, config, argv);
+  });
+
+  ctx.command('联系指挥').action(async argv => {
+    return await contactLeaderHandler(ctx, config, argv);
   });
 }

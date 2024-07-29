@@ -209,4 +209,43 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   }
 };
 
-export { applyHandler, checkSelfHandler };
+const contactLeaderHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+
+  const one = await ctx.database.get(raid_table_name, {
+    raid_time: { $gt: new Date() }
+  });
+  if (one && one.length > 0) {
+    await session.sendQueued(
+      '请输入编号选择要查看的团，当前有如下团:\n' +
+        one
+          .map(
+            (e, idx) =>
+              '' +
+              (idx + 1) +
+              '.    ' +
+              e.raid_name +
+              '    ' +
+              e.raid_time.toLocaleString(locale_settings.current)
+          )
+          .join('\n'),
+      config.message_interval
+    );
+  } else {
+    return '未查询到当前有团';
+  }
+
+  const code = parseInt(await session.prompt(), 10) || -1;
+  if (!one[code - 1]) {
+    return '团号错误';
+  }
+
+  return '指挥的联系方式为：qq： ' + one[code - 1].raid_leader;
+};
+
+export { applyHandler, checkSelfHandler, contactLeaderHandler };
