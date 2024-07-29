@@ -7,7 +7,7 @@ import logger from '../utils/logger';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
-
+import * as iconv from 'iconv-lite';
 // 指挥开团
 const openRaidHandler = async (
   ctx: Context,
@@ -128,11 +128,20 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   }
 };
 
-const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
+const exportHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv,
+  encoding: string
+) => {
   if (!argv?.session) return;
   const session = argv.session;
   if (session.platform! in ['onebot', 'slack', 'sandbox']) {
     return '尚未支持的导出平台';
+  }
+
+  if (encoding && encoding! in ['utf8', 'gb2312']) {
+    return '不支持的编码';
   }
 
   const one = await ctx.database.get(raid_table_name, {
@@ -186,7 +195,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
             .join(',')
         )
         .join('\n');
-    const buffer = new TextEncoder().encode(title);
+    const buffer = iconv.encode(title, encoding ?? 'gb2312');
 
     const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
     const file_name =
@@ -200,7 +209,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
       '.csv';
     const file_path = path.join(root, file_name);
     await fs.mkdir(root, { recursive: true });
-    await fs.writeFile(file_path, buffer, { encoding: 'utf8' });
+    await fs.writeFile(file_path, buffer);
     if (session.platform && session.platform == 'onebot') {
       const file_path = pathToFileURL(path.resolve(root, file_name)).href;
       logger.debug('to send:{}', file_path);

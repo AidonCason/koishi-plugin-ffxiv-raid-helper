@@ -84,9 +84,11 @@ export function apply(ctx: Context, config: Config) {
     return await checkDetailHandler(ctx, config, argv);
   });
 
-  ctx.command('导出报名状况').action(async argv => {
-    return await exportHandler(ctx, config, argv);
-  });
+  ctx
+    .command('导出报名状况 [encoding:string]')
+    .action(async (argv, encoding: string) => {
+      return await exportHandler(ctx, config, argv, encoding);
+    });
 
   // 报名者操作
   ctx.command('报名').action(async argv => {
