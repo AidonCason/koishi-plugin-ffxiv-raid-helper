@@ -11,7 +11,7 @@ import {
   Question
 } from '../constant/question';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
-import { getServerName, selectRaid } from '../utils/server';
+import { selectRaid } from '../utils/server';
 
 const onQuestion = async (
   config: Config,
@@ -72,7 +72,6 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return
   const raid_name = raid.raid_name
 
-  // todo 改成正经count
   const sign_ups = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
   });
@@ -87,10 +86,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (sign_up && sign_up.length > 0) {
     return '已经报名过该团!';
   }
-  const server_name = await getServerName(ctx, session);
-  if (!server_name) {
-    return '未查询到服务器信息，请联系管理员' + session.guildId;
-  }
+  const server_name = raid.raid_server;
   const sheet = [...getQuestions(server_name, config)].reverse();
   const results = {};
   while (sheet.length > 0) {
@@ -104,7 +100,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     }
   }
 
-  // todo 通用一点
+  //TODO: 通用一点
   const output_pairs = [];
   output_pairs.push(['报名内容', '']);
   output_pairs.push(['团次', raid_name]);
