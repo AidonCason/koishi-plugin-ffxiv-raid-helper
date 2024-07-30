@@ -205,7 +205,7 @@ const exportHandler = async (
             .join(',')
         )
         .join('\n');
-    const buffer = iconv.encode(title, encoding ?? 'gb2312');
+    const buffer = iconv.encode(title, encoding ?? 'utf8');
 
     const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
     const file_name =
