@@ -1,13 +1,15 @@
 import { $, Argv, Context, h } from 'koishi';
 import { raid_sign_up_table_name, raid_table_name } from '../constant/common';
 import { date_locale_options, locale_settings } from '../utils/locale';
-import {} from 'koishi-plugin-adapter-onebot';
+import { } from 'koishi-plugin-adapter-onebot';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as iconv from 'iconv-lite';
+import { getRaidInfo, getRaids, getServerName } from '../utils/server';
+
 // 指挥开团
 const openRaidHandler = async (
   ctx: Context,
@@ -32,12 +34,14 @@ const openRaidHandler = async (
   if (one && one.length > 0) {
     return '团已经存在！';
   }
+  // TODO: 需要保证在群里调用
+  const server_name = await getServerName(ctx, session);
   await ctx.database.create(raid_table_name, {
     raid_name,
     max_members: 40,
     raid_leader: session.userId,
     raid_time: raid_time,
-    raid_server: '陆行鸟',
+    raid_server: server_name,
     allow_sign_up: true,
     created_at: new Date(),
     updated_at: new Date()
@@ -50,30 +54,11 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!ctx.database) {
     return '数据库未就绪，请联系管理员';
   }
-  const one = await ctx.database.get(raid_table_name, {
-    raid_time: { $gt: new Date() }
-  });
-  const raids = one.map(raid => raid.raid_name);
-  const counts = await ctx.database
-    .select(raid_sign_up_table_name)
-    .groupBy('raid_name', { count: row => $.count(row.id) })
-    .where(row => $.in(row.raid_name, raids))
-    .execute();
-  if (one && one.length > 0) {
+  const radi_infos = await getRaidInfo(ctx);
+  if (radi_infos) {
     return (
       '当前有如下团:\n' +
-      one
-        .map(
-          e =>
-            e.raid_name +
-            '    时间：' +
-            e.raid_time.toLocaleString(locale_settings.current) +
-            '    报名人数：' +
-            (counts.find(d => d.raid_name == e.raid_name)?.count ?? 0) +
-            '/' +
-            e.max_members
-        )
-        .join('\n')
+      radi_infos.join('\n')
     );
   } else {
     return '未查询到当前有团';
@@ -83,24 +68,14 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-
-  const one = await ctx.database.get(raid_table_name, {
-    raid_time: { $gt: new Date() }
-  });
-  if (one && one.length > 0) {
+  const radis = await getRaids(ctx);
+  const radi_infos = await getRaidInfo(ctx, radis);
+  if (radi_infos) {
     await session.sendQueued(
       '请输入编号选择要查看的团，当前有如下团:\n' +
-        one
-          .map(
-            (e, idx) =>
-              '' +
-              (idx + 1) +
-              '.    ' +
-              e.raid_name +
-              '    ' +
-              e.raid_time.toLocaleString(locale_settings.current)
-          )
-          .join('\n'),
+      radi_infos
+        .map((e, idx) => `${idx + 1}. ${e}`)
+        .join('\n'),
       config.message_interval
     );
   } else {
@@ -108,10 +83,10 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   }
 
   const code = parseInt(await session.prompt(), 10) || -1;
-  if (!one[code - 1]) {
+  if (!radis[code - 1]) {
     return '团号错误';
   }
-  const raid_name = one[code - 1].raid_name;
+  const raid_name = radis[code - 1].raid_name;
 
   const sign_up = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
@@ -153,24 +128,14 @@ const exportHandler = async (
   if (encoding && encoding! in ['utf8', 'gb2312']) {
     return '不支持的编码';
   }
-
-  const one = await ctx.database.get(raid_table_name, {
-    raid_time: { $gt: new Date() }
-  });
-  if (one && one.length > 0) {
+  const radis = await getRaids(ctx);
+  const radi_infos = await getRaidInfo(ctx, radis);
+  if (radis) {
     await session.sendQueued(
       '请输入编号选择要查看的团，当前有如下团:\n' +
-        one
-          .map(
-            (e, idx) =>
-              '' +
-              (idx + 1) +
-              '.    ' +
-              e.raid_name +
-              '    ' +
-              e.raid_time.toLocaleString(locale_settings.current)
-          )
-          .join('\n'),
+      radi_infos
+        .map((e, idx) => `${idx + 1}. ${e}`)
+        .join('\n'),
       config.message_interval
     );
   } else {
@@ -178,7 +143,7 @@ const exportHandler = async (
   }
 
   const code = parseInt(await session.prompt(), 10) || -1;
-  const raid = one[code - 1];
+  const raid = radis[code - 1];
   if (!raid) {
     return '团号错误';
   }

@@ -1,7 +1,7 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
-import {} from './constant/db';
-import { raid_sign_up_table_name, raid_table_name } from './constant/common';
+import { } from './constant/db';
+import { raid_sign_up_table_name, raid_table_name, raid_server_table_name } from './constant/common';
 import {
   checkDetailHandler,
   checkNowHandler,
@@ -64,6 +64,23 @@ export function apply(ctx: Context, config: Config) {
     {
       primary: 'id',
       unique: [['raid_name', 'user_id']], // 同一团一人只能报名一次
+      foreign: null,
+      autoInc: true
+    }
+  );
+
+  ctx.model.extend(
+    raid_server_table_name,
+    {
+      id: 'unsigned',
+      server_name: 'string', //大区名
+      server_group: 'string', //QQ群号
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      unique: ['server_name'],
       foreign: null,
       autoInc: true
     }

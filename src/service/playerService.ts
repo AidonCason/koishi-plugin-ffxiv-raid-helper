@@ -9,11 +9,11 @@ import { locale_settings } from '../utils/locale';
 import {
   base_choice,
   duties,
-  questions,
-  servers,
+  getQuestions,
   Question
 } from '../constant/question';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
+import { getServerName } from '../utils/server';
 
 const onQuestion = async (
   config: Config,
@@ -76,17 +76,17 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (one && one.length > 0) {
     await session.sendQueued(
       '请输入编号选择要报名的团，当前有如下团:\n' +
-        one
-          .map(
-            (e, idx) =>
-              '' +
-              (idx + 1) +
-              '.    ' +
-              e.raid_name +
-              '    ' +
-              e.raid_time.toLocaleString(locale_settings.current)
-          )
-          .join('\n'),
+      one
+        .map(
+          (e, idx) =>
+            '' +
+            (idx + 1) +
+            '.    ' +
+            e.raid_name +
+            '    ' +
+            e.raid_time.toLocaleString(locale_settings.current)
+        )
+        .join('\n'),
       config.message_interval
     );
   } else {
@@ -114,8 +114,11 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (sign_up && sign_up.length > 0) {
     return '已经报名过该团!';
   }
-
-  const sheet = [...questions].reverse();
+  const server_name = await getServerName(ctx, session);
+  if(!server_name) {
+    return '未查询到服务器信息，请联系管理员' + session.guildId;
+  }
+  const sheet = [...getQuestions(server_name, config)].reverse();
   const results = {};
   while (sheet.length > 0) {
     const q = sheet.pop();
@@ -132,7 +135,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const output_pairs = [];
   output_pairs.push(['报名内容', '']);
   output_pairs.push(['团次', raid_name]);
-  output_pairs.push(['区服', servers[results['3'] - 1]]);
+  output_pairs.push(['区服', config.server_name_map[server_name][results['3'] - 1]]);
   output_pairs.push(['游戏ID', results['4']]);
   output_pairs.push(['初见', base_choice[1 - results['2']]]);
   output_pairs.push(['QQ(问卷填写)', results['5']]);
@@ -141,15 +144,15 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   output_pairs.push([
     '主选',
     Object.keys(duties)[results['7'] - 1].toString() +
-      '-' +
-      duties[Object.keys(duties)[results['7'] - 1]][results['7-1'] - 1]
+    '-' +
+    duties[Object.keys(duties)[results['7'] - 1]][results['7-1'] - 1]
   ]);
 
   output_pairs.push([
     '次选',
     Object.keys(duties)[results['8'] - 1].toString() +
-      '-' +
-      duties[Object.keys(duties)[results['8'] - 1]][results['8-1'] - 1]
+    '-' +
+    duties[Object.keys(duties)[results['8'] - 1]][results['8-1'] - 1]
   ]);
   output_pairs.push(['红色勋章层数', results['9']]);
   output_pairs.push(['留言', results['11']]);
@@ -205,17 +208,17 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (one && one.length > 0) {
     await session.sendQueued(
       '请输入编号选择要查看的团，当前有如下团:\n' +
-        one
-          .map(
-            (e, idx) =>
-              '' +
-              (idx + 1) +
-              '.    ' +
-              e.raid_name +
-              '    ' +
-              e.raid_time.toLocaleString(locale_settings.current)
-          )
-          .join('\n'),
+      one
+        .map(
+          (e, idx) =>
+            '' +
+            (idx + 1) +
+            '.    ' +
+            e.raid_name +
+            '    ' +
+            e.raid_time.toLocaleString(locale_settings.current)
+        )
+        .join('\n'),
       config.message_interval
     );
   } else {
@@ -258,17 +261,17 @@ const contactLeaderHandler = async (
   if (one && one.length > 0) {
     await session.sendQueued(
       '请输入编号选择要查看的团，当前有如下团:\n' +
-        one
-          .map(
-            (e, idx) =>
-              '' +
-              (idx + 1) +
-              '.    ' +
-              e.raid_name +
-              '    ' +
-              e.raid_time.toLocaleString(locale_settings.current)
-          )
-          .join('\n'),
+      one
+        .map(
+          (e, idx) =>
+            '' +
+            (idx + 1) +
+            '.    ' +
+            e.raid_name +
+            '    ' +
+            e.raid_time.toLocaleString(locale_settings.current)
+        )
+        .join('\n'),
       config.message_interval
     );
   } else {

@@ -2,6 +2,7 @@ declare module 'koishi' {
   interface Tables {
     ffxiv_raid_helper_raid: RaidListTable;
     ffxiv_raid_helper_sign_up: RaidSignUpTable;
+    ffxiv_raid_helper_server: RaidServerTable;
   }
 }
 
@@ -25,6 +26,15 @@ export interface RaidSignUpTable {
   user_id: string; // 用户id
   content: string; // 报名内容
   history_content: string; // 报名内容
+  created_at: Date;
+  updated_at: Date;
+}
+
+// 区服信息和QQ群映射表
+export interface RaidServerTable {
+  id: number;
+  server_name: string; //大区名
+  server_group: string; //QQ群号
   created_at: Date;
   updated_at: Date;
 }
