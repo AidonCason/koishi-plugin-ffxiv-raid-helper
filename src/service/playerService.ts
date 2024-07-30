@@ -3,9 +3,7 @@ import { Config } from '../config/settings';
 import {
   ErrorCode,
   raid_sign_up_table_name,
-  raid_table_name
 } from '../constant/common';
-import { locale_settings } from '../utils/locale';
 import {
   base_choice,
   duties,
@@ -13,7 +11,7 @@ import {
   Question
 } from '../constant/question';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
-import { getServerName } from '../utils/server';
+import { getServerName, selectRaid } from '../utils/server';
 
 const onQuestion = async (
   config: Config,
@@ -69,41 +67,16 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     '欢迎报名，请仔细阅读并回答以下问题即可完成报名',
     config.message_interval
   );
-
-  const one = await ctx.database.get(raid_table_name, {
-    raid_time: { $gt: new Date() }
-  });
-  if (one && one.length > 0) {
-    await session.sendQueued(
-      '请输入编号选择要报名的团，当前有如下团:\n' +
-      one
-        .map(
-          (e, idx) =>
-            '' +
-            (idx + 1) +
-            '.    ' +
-            e.raid_name +
-            '    ' +
-            e.raid_time.toLocaleString(locale_settings.current)
-        )
-        .join('\n'),
-      config.message_interval
-    );
-  } else {
-    return '未查询到当前有团，请在开团后报名';
-  }
-
-  const code = parseInt(await session.prompt(), 10) || -1;
-  if (!one[code - 1]) {
-    return '团号错误，请重新开始报名流程';
-  }
-  const raid_name = one[code - 1].raid_name;
+  const raid = await selectRaid(ctx, config, session)
+  if (!raid)
+    return
+  const raid_name = raid.raid_name
 
   // todo 改成正经count
   const sign_ups = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
   });
-  if (sign_ups && sign_ups.length >= one[code - 1].max_members) {
+  if (sign_ups && sign_ups.length >= raid.max_members) {
     return '已经报名满了，请下次再来或查看其他团';
   }
 
@@ -115,7 +88,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return '已经报名过该团!';
   }
   const server_name = await getServerName(ctx, session);
-  if(!server_name) {
+  if (!server_name) {
     return '未查询到服务器信息，请联系管理员' + session.guildId;
   }
   const sheet = [...getQuestions(server_name, config)].reverse();
@@ -201,35 +174,10 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-
-  const one = await ctx.database.get(raid_table_name, {
-    raid_time: { $gt: new Date() }
-  });
-  if (one && one.length > 0) {
-    await session.sendQueued(
-      '请输入编号选择要查看的团，当前有如下团:\n' +
-      one
-        .map(
-          (e, idx) =>
-            '' +
-            (idx + 1) +
-            '.    ' +
-            e.raid_name +
-            '    ' +
-            e.raid_time.toLocaleString(locale_settings.current)
-        )
-        .join('\n'),
-      config.message_interval
-    );
-  } else {
-    return '未查询到当前有团';
-  }
-
-  const code = parseInt(await session.prompt(), 10) || -1;
-  if (!one[code - 1]) {
-    return '团号错误';
-  }
-  const raid_name = one[code - 1].raid_name;
+  const raid = await selectRaid(ctx, config, session)
+  if (!raid)
+    return
+  const raid_name = raid.raid_name
 
   const sign_up = await ctx.database.get(raid_sign_up_table_name, {
     user_id: { $eq: session.userId },
@@ -254,36 +202,10 @@ const contactLeaderHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-
-  const one = await ctx.database.get(raid_table_name, {
-    raid_time: { $gt: new Date() }
-  });
-  if (one && one.length > 0) {
-    await session.sendQueued(
-      '请输入编号选择要查看的团，当前有如下团:\n' +
-      one
-        .map(
-          (e, idx) =>
-            '' +
-            (idx + 1) +
-            '.    ' +
-            e.raid_name +
-            '    ' +
-            e.raid_time.toLocaleString(locale_settings.current)
-        )
-        .join('\n'),
-      config.message_interval
-    );
-  } else {
-    return '未查询到当前有团';
-  }
-
-  const code = parseInt(await session.prompt(), 10) || -1;
-  if (!one[code - 1]) {
-    return '团号错误';
-  }
-
-  return '指挥的联系方式为：qq： ' + one[code - 1].raid_leader;
+  const raid = await selectRaid(ctx, config, session)
+  if (!raid)
+    return
+  return '指挥的联系方式为：qq： ' + raid.raid_leader;
 };
 
 export { applyHandler, checkSelfHandler, contactLeaderHandler };

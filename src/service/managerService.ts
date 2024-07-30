@@ -8,7 +8,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as iconv from 'iconv-lite';
-import { getRaidInfo, getRaids, getServerName } from '../utils/server';
+import { getRaidInfo, getServerName, selectRaid } from '../utils/server';
 
 // 指挥开团
 const openRaidHandler = async (
@@ -68,26 +68,10 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const radis = await getRaids(ctx);
-  const radi_infos = await getRaidInfo(ctx, radis);
-  if (radi_infos) {
-    await session.sendQueued(
-      '请输入编号选择要查看的团，当前有如下团:\n' +
-      radi_infos
-        .map((e, idx) => `${idx + 1}. ${e}`)
-        .join('\n'),
-      config.message_interval
-    );
-  } else {
-    return '未查询到当前有团';
-  }
-
-  const code = parseInt(await session.prompt(), 10) || -1;
-  if (!radis[code - 1]) {
-    return '团号错误';
-  }
-  const raid_name = radis[code - 1].raid_name;
-
+  const raid = await selectRaid(ctx, config, session)
+  if (!raid)
+    return
+  const raid_name = raid.raid_name
   const sign_up = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
   });
@@ -128,26 +112,10 @@ const exportHandler = async (
   if (encoding && encoding! in ['utf8', 'gb2312']) {
     return '不支持的编码';
   }
-  const radis = await getRaids(ctx);
-  const radi_infos = await getRaidInfo(ctx, radis);
-  if (radis) {
-    await session.sendQueued(
-      '请输入编号选择要查看的团，当前有如下团:\n' +
-      radi_infos
-        .map((e, idx) => `${idx + 1}. ${e}`)
-        .join('\n'),
-      config.message_interval
-    );
-  } else {
-    return '未查询到当前有团';
-  }
-
-  const code = parseInt(await session.prompt(), 10) || -1;
-  const raid = radis[code - 1];
-  if (!raid) {
-    return '团号错误';
-  }
-  const raid_name = raid.raid_name;
+  const raid = await selectRaid(ctx, config, session)
+  if (!raid)
+    return
+  const raid_name = raid.raid_name
 
   const sign_up = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
