@@ -1,61 +1,42 @@
-import { Dict, Session, Context, Argv } from 'koishi';
+import { Session, Context, Argv } from 'koishi';
 import { Config } from '../config/settings';
 import {
   ErrorCode,
   raid_sign_up_table_name,
 } from '../constant/common';
-import {
-  base_choice,
-  duties,
-  getQuestions,
-  Question
-} from '../constant/question';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
 import { selectRaid } from '../utils/server';
+import { Answer, Question } from '../constant/question';
+import { getSheet } from '../constant/questionSheet';
 
 const onQuestion = async (
   config: Config,
   session: Session,
   problem: Question,
-  results: Dict<string | number, string>,
+  results: Map<string, Answer>,
   retry_time: number = 0
 ) => {
-  const range =
-    problem.depends_key && problem.depends_range
-      ? problem.depends_range(results[problem.depends_key])
-      : problem.answer_range;
-  if (retry_time == 0) {
-    if (problem.depends_key && problem.depends_content) {
-      await session.sendQueued(
-        problem.depends_content(results[problem.depends_key]),
-        config.message_interval
-      );
-    } else {
-      await session.sendQueued(problem.content, config.message_interval);
-    }
-  }
-  if (retry_time > 0 && retry_time <= 3) {
-    await session.sendQueued(
-      '答案不在范围内，请在以下范围选择' + JSON.stringify(range),
-      config.message_interval
-    );
-  }
   if (retry_time > 3) {
     return ErrorCode.RejectRange;
   }
+
+  await session.sendQueued(problem.construct_content(results), config.message_interval);
   const res_accept = await session.prompt();
   if (!res_accept) return ErrorCode.Timeout;
-  if (
-    range &&
-    range.length > 0 &&
-    range.indexOf(res_accept) < 0 &&
-    range.indexOf(parseInt(res_accept)) < 0
-  ) {
+  console.log('res_accept', res_accept);
+  console.log('problem', problem);
+
+  if (!problem.accept_answer(res_accept, results)) {
     // 答案不在范围内，进行重试
+    await session.sendQueued('输入不合法，请重新输入', config.message_interval);
     return onQuestion(config, session, problem, results, retry_time + 1);
   }
-
-  results[problem.label ?? problem.content] = res_accept;
+  results.set(problem.label, {
+    label: problem.label,
+    name: problem.name,
+    answer: res_accept,
+    preitter_answer: problem.construct_preitter_answer(res_accept, results),
+  })
   return ErrorCode.OK;
 };
 
@@ -87,8 +68,8 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return '已经报名过该团!';
   }
   const server_name = raid.raid_server;
-  const sheet = [...getQuestions(server_name, config)].reverse();
-  const results = {};
+  const sheet = [...getSheet(server_name, config)].reverse();
+  const results: Map<string, Answer> = new Map();
   while (sheet.length > 0) {
     const q = sheet.pop();
     const res_code = await onQuestion(config, session, q, results);
@@ -99,32 +80,10 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       return '输入超时，报名结束';
     }
   }
-
-  //TODO: 通用一点
-  const output_pairs = [];
-  output_pairs.push(['报名内容', '']);
-  output_pairs.push(['团次', raid_name]);
-  output_pairs.push(['区服', config.server_name_map[server_name][results['3'] - 1]]);
-  output_pairs.push(['游戏ID', results['4']]);
-  output_pairs.push(['初见', base_choice[1 - results['2']]]);
-  output_pairs.push(['QQ(问卷填写)', results['5']]);
+  console.log(results);
+  const output_pairs = Array.from(results.values()).map(r => [r.name, r.preitter_answer]);
   output_pairs.push(['QQ(报名使用)', session.userId]);
-  output_pairs.push(['接受调剂', base_choice[results['6']]]);
-  output_pairs.push([
-    '主选',
-    Object.keys(duties)[results['7'] - 1].toString() +
-    '-' +
-    duties[Object.keys(duties)[results['7'] - 1]][results['7-1'] - 1]
-  ]);
-
-  output_pairs.push([
-    '次选',
-    Object.keys(duties)[results['8'] - 1].toString() +
-    '-' +
-    duties[Object.keys(duties)[results['8'] - 1]][results['8-1'] - 1]
-  ]);
-  output_pairs.push(['红色勋章层数', results['9']]);
-  output_pairs.push(['留言', results['11']]);
+  console.log(output_pairs);
 
   if (config.notice_users.length > 0) {
     config.notice_users.forEach(user => {

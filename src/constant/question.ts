@@ -1,129 +1,137 @@
-import { Config } from "../config/settings";
-
-const enum AnswerType {
-  String = 0,
-  Number
+export const enum QuestionType {
+    Text = 'Text', // 填空题
+    Boolean = 'Boolean', // 是非题
+    SignleChoice = 'SignleChoice', // 单选题
 }
 
-const base_choice = ['否', '是'];
-
-const duties = {
-  坦克: ['骑士', '战士', '黑骑', '绝枪'],
-  治疗: ['白魔', '学者', '占星', '贤者'],
-  近战: ['武僧', '龙骑', '忍者', '武士', '镰刀'],
-  远敏: ['诗人', '机工', '武者'],
-  法系: ['黑魔', '召唤', '赤魔']
-};
-
-class Question {
-  label: string;
-  content: string; // 提示语
-  answer_type?: AnswerType = AnswerType.String; // 回答类型，默认String自由回答
-  answer_range?: ReadonlyArray<string | number>; // 回答范围，用作单选
-  depends_key?: string; // 依赖于其他题目的答案
-  depends_content?: (input) => string;
-  depends_range?: (input) => ReadonlyArray<string | number>; //由input产生选择集
+export class Answer {
+    label: string;
+    name: string;
+    answer: string; // 用户输入的答案
+    preitter_answer: string; // 处理后的答案
 }
 
-const getQuestions = (server_name: string, config: Config) => {
-  const questions: ReadonlyArray<Question> = [
-    // {
-    //   label: '0',
-    //   content:
-    //     '1.<b>请您确保已经详细阅读过所有的相关群公告再提交报名表，如果因为未阅读群公告导致的所有问题你将负全部责任。</b>(No退出，其它任意输入继续)'
-    // },
-    {
-      label: '2',
-      content: '是否已经通关零式女王古殿？\n(1-是/0-否)',
-      answer_type: AnswerType.Number,
-      answer_range: [1, 0]
-    },
-    {
-      label: '3',
-      content:
-        '所在服务器\n' +
-        config.server_name_map[server_name].map((server, idx) => '' + (idx + 1) + '-' + server).join('\n'),
-      answer_range: config.server_name_map[server_name].map((_, idx) => idx + 1)
-    },
-    {
-      label: '4',
-      content: '角色姓名'
-    },
-    {
-      label: '5',
-      content: 'QQ'
-    },
-    {
-      label: '6',
-      content:
-        '选择职业前请您注意，我们保证所有的开荒位置先到先得，但是如果您所选择的职能已经满员了，您是否愿意被调剂到其他职能？\n(1-是/0-否)',
-      answer_type: AnswerType.Number,
-      answer_range: [1, 0]
-    },
-    {
-      label: '7',
-      content:
-        '职能-职业选择:职能\n' +
-        Object.keys(duties)
-          .map((duty, idx) => '' + (idx + 1) + '-' + duty)
-          .join('\n'),
-      answer_type: AnswerType.Number,
-      answer_range: Object.keys(duties).map((_, idx) => idx + 1)
-    },
-    {
-      label: '7-1',
-      content: '',
-      answer_type: AnswerType.Number,
-      depends_key: '7',
-      depends_content: input =>
-        '职能-职业选择:职业\n' +
-        duties[Object.keys(duties)[input - 1]]
-          .map((duty, idx) => '' + (idx + 1) + '-' + duty)
-          .join('\n'),
-      depends_range: input =>
-        duties[Object.keys(duties)[input - 1]].map((_, idx) => idx + 1)
-    },
-    {
-      label: '8',
-      content:
-        '职能-职业选择:次选职能\n' +
-        Object.keys(duties)
-          .map((duty, idx) => '' + (idx + 1) + '-' + duty)
-          .join('\n'),
-      answer_type: AnswerType.Number,
-      answer_range: Object.keys(duties).map((_, idx) => idx + 1)
-    },
-    {
-      label: '8-1',
-      content: '',
-      answer_type: AnswerType.Number,
-      depends_key: '8',
-      depends_content: input =>
-        '职能-职业选择:次选职业\n' +
-        duties[Object.keys(duties)[input - 1]]
-          .map((duty, idx) => '' + (idx + 1) + '-' + duty)
-          .join('\n'),
-      depends_range: input =>
-        duties[Object.keys(duties)[input - 1]].map((_, idx) => idx + 1)
-    },
-    {
-      label: '9',
-      content: '请您输入角色现有红色的战斗勋章层数:\n',
-      answer_range: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    },
-    // {
-    //   label: '10',
-    //   content:
-    //     '有亲友和您是一起来报名的吗？如果有的话需要把你们安排在同一队里吗？他的id是什么？\n(有的，我的朋友是xxx/没有)'
-    // },
-    {
-      label: '11',
-      content: '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~'
+export type AnswerMap = ReadonlyMap<string, Answer>;
+
+interface IQuestionDefine {
+    label: string;
+    name: string; // 导出的字段名
+    content: string;
+    type: QuestionType;
+    construct_content?: (input: AnswerMap) => string;
+    accept_answer?: (answer: string, input: AnswerMap) => boolean;
+    construct_preitter_answer?: (answer: string, input: AnswerMap) => string;
+}
+
+export class TextQuestionDefine implements IQuestionDefine {
+    label: string;
+    name: string;
+    content: string;
+    type: QuestionType.Text;
+    construct_content?: (input: AnswerMap) => string;
+    accept_answer?: (answer: string, input: AnswerMap) => boolean;
+    construct_preitter_answer?: (answer: string, input: AnswerMap) => string;
+}
+
+export class BooleanQuestionDefine implements IQuestionDefine {
+    label: string;
+    name: string;
+    content: string;
+    type: QuestionType.Boolean;
+    answer_range?: [number, number];
+    answer_range_desc?: [string, string];
+    construct_content?: (input: AnswerMap) => string
+    accept_answer?: (answer: string, input: AnswerMap) => boolean
+    construct_preitter_answer?: (answer: string, input: AnswerMap) => string
+}
+
+export class SignleChoiceQuestionDefine implements IQuestionDefine {
+    label: string;
+    name: string;
+    content: string;
+    type: QuestionType.SignleChoice;
+    answer_range?: ReadonlyArray<string | number>;
+    answer_range_desc?: ReadonlyArray<string>;
+    construct_range?: (input: AnswerMap) => ReadonlyMap<string, string>
+    construct_content?: (input: AnswerMap) => string
+    accept_answer?: (answer: string, input: AnswerMap) => boolean
+    construct_preitter_answer?: (answer: string, input: AnswerMap) => string
+
+}
+
+export type QuestionDefine = TextQuestionDefine | BooleanQuestionDefine | SignleChoiceQuestionDefine;
+
+export class TextQuestion extends TextQuestionDefine {
+    construct_content: (input: AnswerMap) => string = _ => this.content;
+    accept_answer: (answer: string, input: AnswerMap) => boolean = _ => true;
+    construct_preitter_answer: (answer: string, input: AnswerMap) => string = answer => answer;
+
+    constructor(question: TextQuestionDefine) {
+        super();
+        Object.assign(this, question);
     }
-  ];
-  return questions;
 }
 
+export class BooleanQuestion extends BooleanQuestionDefine {
+    answer_range: [number, number] = [1, 0];
+    answer_range_desc: [string, string] = ['是', '否'];
+    construct_content: (input: AnswerMap) => string = _ => `${this.content}\n(${this.answer_range[0]}-${this.answer_range_desc[0]}/${this.answer_range[1]}-${this.answer_range_desc[1]})`;
+    accept_answer: (answer: string, input: AnswerMap) => boolean = answer => {
+        const num = parseInt(answer);
+        return num === this.answer_range[0] || num === this.answer_range[1];
+    }
+    construct_preitter_answer: (answer: string, input: AnswerMap) => string = answer => {
+        const num = parseInt(answer);
+        return num === this.answer_range[0] ? this.answer_range_desc[0] : this.answer_range_desc[1];
+    }
 
+    constructor(question: BooleanQuestionDefine) {
+        super();
+        Object.assign(this, question);
+    }
+}
 
-export { base_choice, getQuestions, duties, Question };
+export class SignleChoiceQuestion extends SignleChoiceQuestionDefine {
+    construct_range: (input: AnswerMap) => ReadonlyMap<string, string> = _ => {
+        if (!this.answer_range && !this.answer_range_desc) {
+            throw new Error('answer_range or answer_range_desc must be set');
+        }
+        this.answer_range = this.answer_range ?? this.answer_range_desc;
+        this.answer_range_desc = this.answer_range_desc ?? this.answer_range.map(e => e.toString());
+        if (this.answer_range.length !== this.answer_range_desc.length) {
+            throw new Error('answer_range and answer_range_desc must have the same length');
+        }
+        return new Map(this.answer_range.map((e, idx) => [e.toString(), this.answer_range_desc[idx]]));
+    }
+    construct_content: (input: AnswerMap) => string = input => {
+        const range = this.construct_range(input);
+        return `${this.content}\n${Array.from(range.entries()).map(([key, value]) => key == value ? value : `${key}-${value}`).join('\n')}`;
+    }
+    accept_answer: (answer: string, input: AnswerMap) => boolean = (answer, input) => {
+        const range = this.construct_range(input);
+        return range.has(answer);
+    }
+    construct_preitter_answer: (answer: string, input: AnswerMap) => string = (answer, input) => {
+        const range = this.construct_range(input);
+        return range.get(answer) ?? '';
+    }
+
+    constructor(question: SignleChoiceQuestionDefine) {
+        super();
+        Object.assign(this, question);
+    }
+}
+
+export type Question = TextQuestion | BooleanQuestion | SignleChoiceQuestion;
+
+export function buildQuestion(question: QuestionDefine): Question {
+    switch (question.type) {
+        case QuestionType.Text:
+            return new TextQuestion(question);
+        case QuestionType.Boolean:
+            return new BooleanQuestion(question);
+        case QuestionType.SignleChoice:
+            return new SignleChoiceQuestion(question);
+    }
+    throw new Error('Unknown question type');
+}
