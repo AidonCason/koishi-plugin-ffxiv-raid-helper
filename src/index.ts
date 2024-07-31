@@ -1,11 +1,6 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
-import {} from './constant/db';
-import {
-  raid_sign_up_table_name,
-  raid_table_name,
-  raid_server_table_name
-} from './constant/common';
+import { dbSetup } from './constant/db';
 import {
   checkDetailHandler,
   checkNowHandler,
@@ -30,65 +25,7 @@ export const inject = {
 export * from './config/settings';
 
 export function apply(ctx: Context, config: Config) {
-  // write your plugin here
-  // create table
-
-  ctx.model.extend(
-    raid_table_name,
-    {
-      id: 'unsigned',
-      raid_name: 'string', // 团名
-      max_members: 'unsigned', // 接纳报名的最大人数
-      raid_leader: 'string', // 指挥qq
-      raid_time: 'timestamp', // 开团时间
-      raid_server: 'string', // 开团的服务器
-      allow_sign_up: 'boolean',
-      created_at: 'timestamp',
-      updated_at: 'timestamp'
-    },
-    {
-      primary: 'id',
-      unique: ['raid_name'],
-      foreign: null,
-      autoInc: true
-    }
-  );
-
-  ctx.model.extend(
-    raid_sign_up_table_name,
-    {
-      id: 'unsigned',
-      raid_name: 'string', // 团名
-      user_id: 'string', // 用户id
-      content: 'text', // 报名内容
-      history_content: 'text', // 报名内容
-      created_at: 'timestamp',
-      updated_at: 'timestamp'
-    },
-    {
-      primary: 'id',
-      unique: [['raid_name', 'user_id']], // 同一团一人只能报名一次
-      foreign: null,
-      autoInc: true
-    }
-  );
-
-  ctx.model.extend(
-    raid_server_table_name,
-    {
-      id: 'unsigned',
-      server_name: 'string', //大区名
-      server_group: 'string', //QQ群号
-      created_at: 'timestamp',
-      updated_at: 'timestamp'
-    },
-    {
-      primary: 'id',
-      unique: ['server_name'],
-      foreign: null,
-      autoInc: true
-    }
-  );
+  dbSetup(ctx);
 
   // 指挥操作
   ctx

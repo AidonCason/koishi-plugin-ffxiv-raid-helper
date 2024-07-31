@@ -1,3 +1,6 @@
+import { Context } from "koishi";
+import { raid_server_table_name, raid_sign_up_table_name, raid_table_name } from "./common";
+
 declare module 'koishi' {
   interface Tables {
     ffxiv_raid_helper_raid: RaidListTable;
@@ -37,4 +40,63 @@ export interface RaidServerTable {
   server_group: string; //QQ群号
   created_at: Date;
   updated_at: Date;
+}
+
+export function dbSetup(ctx: Context) {
+  ctx.model.extend(
+    raid_table_name,
+    {
+      id: 'unsigned',
+      raid_name: 'string', // 团名
+      max_members: 'unsigned', // 接纳报名的最大人数
+      raid_leader: 'string', // 指挥qq
+      raid_time: 'timestamp', // 开团时间
+      raid_server: 'string', // 开团的服务器
+      allow_sign_up: 'boolean',
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      unique: ['raid_name'],
+      foreign: null,
+      autoInc: true
+    }
+  );
+
+  ctx.model.extend(
+    raid_sign_up_table_name,
+    {
+      id: 'unsigned',
+      raid_name: 'string', // 团名
+      user_id: 'string', // 用户id
+      content: 'text', // 报名内容
+      history_content: 'text', // 报名内容
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      unique: [['raid_name', 'user_id']], // 同一团一人只能报名一次
+      foreign: null,
+      autoInc: true
+    }
+  );
+
+  ctx.model.extend(
+    raid_server_table_name,
+    {
+      id: 'unsigned',
+      server_name: 'string', //大区名
+      server_group: 'string', //QQ群号
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      unique: ['server_name'],
+      foreign: null,
+      autoInc: true
+    }
+  );
 }
