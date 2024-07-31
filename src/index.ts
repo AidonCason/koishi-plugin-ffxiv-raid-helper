@@ -1,7 +1,11 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
-import { } from './constant/db';
-import { raid_sign_up_table_name, raid_table_name, raid_server_table_name } from './constant/common';
+import {} from './constant/db';
+import {
+  raid_sign_up_table_name,
+  raid_table_name,
+  raid_server_table_name
+} from './constant/common';
 import {
   checkDetailHandler,
   checkNowHandler,
@@ -88,21 +92,33 @@ export function apply(ctx: Context, config: Config) {
 
   // 指挥操作
   ctx
-    .command('开团 <raid_name:string> <raid_time:date>')
+    .command('开团 <raid_name:string> <raid_time:date>', '开启一个新的raid团', {
+      authority: 4
+    })
     .action(async (argv, raid_name: string, raid_time: Date) => {
       return await openRaidHandler(ctx, config, argv, raid_name, raid_time);
     });
 
-  ctx.command('查看当前团').action(async argv => {
-    return await checkNowHandler(ctx, config, argv);
-  });
-
-  ctx.command('查看报名状况').action(async argv => {
-    return await checkDetailHandler(ctx, config, argv);
-  });
+  ctx
+    .command('查看当前团', '查看当前所有开启中的团', {
+      authority: 4
+    })
+    .action(async argv => {
+      return await checkNowHandler(ctx, config, argv);
+    });
 
   ctx
-    .command('导出报名状况 [encoding:string]')
+    .command('查看报名状况', '查看单个团的报名详情列表', {
+      authority: 4
+    })
+    .action(async argv => {
+      return await checkDetailHandler(ctx, config, argv);
+    });
+
+  ctx
+    .command('导出报名状况 [encoding:string]', '导出单个团的报名详情列表', {
+      authority: 4
+    })
     .action(async (argv, encoding: string) => {
       return await exportHandler(ctx, config, argv, encoding);
     });
