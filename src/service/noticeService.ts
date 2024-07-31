@@ -1,6 +1,8 @@
 import { Bot, Context } from 'koishi';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
+import { raid_sign_up_table_name, raid_table_name } from '../constant/common';
+import { locale_settings } from '../utils/locale';
 
 const noticeToPrivage = async (
   ctx: Context,
@@ -42,4 +44,52 @@ const noticeToGroup = async (
   bot.sendMessage(group_id, message, group_id);
 };
 
-export { noticeToPrivage, noticeToGroup };
+const pushDict = new Map<string, Date>();
+const noticeOneDayBefore = async (ctx: Context, config: Config) => {
+  const now = new Date();
+  const oneDayAfter = new Date(now);
+  oneDayAfter.setDate(now.getDate() + 1);
+  // oneDayAfter.setHours(now.getHours() - 1);
+  const oneDayAfter2 = new Date(now);
+  oneDayAfter2.setDate(now.getDate() + 1);
+  // oneDayAfter2.setHours(now.getHours() - 1);
+  oneDayAfter2.setMinutes(now.getMinutes() + 5);
+
+  const raidList = await ctx.model.get(raid_table_name, {
+    raid_time: {
+      $gte: oneDayAfter,
+      $lte: oneDayAfter2
+    }
+  });
+
+  if (raidList.length == 0) return;
+  const bot = ctx.bots.find(bot => bot.platform == 'onebot');
+  if (!bot || !bot.isActive) {
+    logger.warn('找不到onebot机器人，无法推送私信');
+    return;
+  }
+
+  raidList.forEach(async e => {
+    const msg = `团 ${e.raid_name} 将于 ${e.raid_time.toLocaleString(locale_settings.current)} 发车`;
+    logger.info(msg);
+
+    const sign_ups = await ctx.model.get(raid_sign_up_table_name, {
+      raid_name: { $gt: e.raid_name }
+    });
+
+    sign_ups.forEach(async s => {
+      const key = `${e.raid_name}_private_${s.user_id}`;
+      if (!pushDict[key]) {
+        noticeToPrivage(ctx, config, bot, s.user_id, msg);
+        pushDict[key] = now;
+        // todo 清理或者优化
+      }
+    });
+  });
+};
+
+const clearDict = () => {
+  pushDict.clear();
+};
+
+export { noticeToPrivage, noticeToGroup, noticeOneDayBefore, clearDict };

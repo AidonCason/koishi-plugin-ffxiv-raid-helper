@@ -1,6 +1,7 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
 import { dbSetup } from './constant/db';
+import {} from 'koishi-plugin-cron';
 import {
   checkDetailHandler,
   checkNowHandler,
@@ -12,13 +13,14 @@ import {
   checkSelfHandler,
   contactLeaderHandler
 } from './service/playerService';
+import { clearDict, noticeOneDayBefore } from './service/noticeService';
 
 // 插件名
 export const name = 'ffxiv-raid-helper';
 
 // 前置服务
 export const inject = {
-  required: ['database', 'assets']
+  required: ['database', 'assets', 'cron']
 };
 
 // 重新导出配置
@@ -26,6 +28,11 @@ export * from './config/settings';
 
 export function apply(ctx: Context, config: Config) {
   dbSetup(ctx);
+
+  // 每分钟检查是否当前有团，有的话对参团人员进行推送
+  ctx.cron('*/1 * * * *', () => noticeOneDayBefore(ctx, config));
+  // 每天零点清理一次推送
+  ctx.cron('* 0 * * *', clearDict);
 
   // 指挥操作
   ctx
