@@ -1,12 +1,16 @@
 import { $, Context, Session } from "koishi"
-import { raid_server_table_name, raid_sign_up_table_name, raid_table_name } from "../constant/common"
+import { raid_sign_up_table_name, raid_table_name } from "../constant/common"
 import { RaidListTable } from "../constant/db"
 import { Config } from "../config/settings"
 
-const getServerName = async (ctx: Context, session: Session) => {
+const getServerName = async (ctx: Context,config: Config,session: Session) => {
     if (!session.guild) return
-    const server = await ctx.database.get(raid_server_table_name, { server_group: { $eq: session.guildId } })
-    return server[0]?.server_name
+    for (const [server_name, server_ids] of Object.entries(config.server_group_map)) {
+        if (server_ids.includes(session.guildId)) {
+            return server_name
+        }
+    }
+    await session.sendQueued('请在指定的群组内开团', config.message_interval)
 }
 
 const getRaids = async (ctx: Context) => {

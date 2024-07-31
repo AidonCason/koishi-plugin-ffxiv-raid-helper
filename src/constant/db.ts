@@ -1,11 +1,10 @@
 import { Context } from "koishi";
-import { raid_server_table_name, raid_sign_up_table_name, raid_table_name } from "./common";
+import { raid_sign_up_table_name, raid_table_name } from "./common";
 
 declare module 'koishi' {
   interface Tables {
     ffxiv_raid_helper_raid: RaidListTable;
     ffxiv_raid_helper_sign_up: RaidSignUpTable;
-    ffxiv_raid_helper_server: RaidServerTable;
   }
 }
 
@@ -29,15 +28,6 @@ export interface RaidSignUpTable {
   user_id: string; // 用户id
   content: string; // 报名内容
   history_content: string; // 报名内容
-  created_at: Date;
-  updated_at: Date;
-}
-
-// 区服信息和QQ群映射表
-export interface RaidServerTable {
-  id: number;
-  server_name: string; //大区名
-  server_group: string; //QQ群号
   created_at: Date;
   updated_at: Date;
 }
@@ -78,23 +68,6 @@ export function dbSetup(ctx: Context) {
     {
       primary: 'id',
       unique: [['raid_name', 'user_id']], // 同一团一人只能报名一次
-      foreign: null,
-      autoInc: true
-    }
-  );
-
-  ctx.model.extend(
-    raid_server_table_name,
-    {
-      id: 'unsigned',
-      server_name: 'string', //大区名
-      server_group: 'string', //QQ群号
-      created_at: 'timestamp',
-      updated_at: 'timestamp'
-    },
-    {
-      primary: 'id',
-      unique: ['server_name'],
       foreign: null,
       autoInc: true
     }

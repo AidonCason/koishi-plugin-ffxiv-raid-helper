@@ -35,7 +35,9 @@ const openRaidHandler = async (
     return '团已经存在！';
   }
   // TODO: 需要保证在群里调用
-  const server_name = await getServerName(ctx, session);
+  const server_name = await getServerName(ctx, config, session);
+  if (!server_name)
+    return
   await ctx.database.create(raid_table_name, {
     raid_name,
     max_members: 40,

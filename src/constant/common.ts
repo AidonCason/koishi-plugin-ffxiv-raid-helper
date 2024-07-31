@@ -13,7 +13,5 @@ const table_prefix = 'ffxiv_raid_helper_';
 const raid_table_name = `${table_prefix}raid`;
 // 报名表名称
 const raid_sign_up_table_name = `${table_prefix}sign_up`;
-// 区服表名称
-const raid_server_table_name = `${table_prefix}server`;
 
-export { ErrorCode, raid_table_name, raid_sign_up_table_name, raid_server_table_name };
+export { ErrorCode, raid_table_name, raid_sign_up_table_name };

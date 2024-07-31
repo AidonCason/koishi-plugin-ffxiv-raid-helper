@@ -5,6 +5,7 @@ export interface Config {
   notice_users: string[];
   notice_groups: string[];
   server_name_map: { [key: string]: string[] };
+  server_group_map: { [key: string]: string[] };
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -52,5 +53,6 @@ export const Config: Schema<Config> = Schema.object({
       '伊修加德',
       '红茶川'
     ]
-  })
+  }),
+  server_group_map: Schema.dict(Schema.array(Schema.string()).role('table'))
 });
