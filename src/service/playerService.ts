@@ -23,8 +23,6 @@ const onQuestion = async (
   await session.sendQueued(problem.construct_content(results), config.message_interval);
   const res_accept = await session.prompt();
   if (!res_accept) return ErrorCode.Timeout;
-  console.log('res_accept', res_accept);
-  console.log('problem', problem);
 
   if (!problem.accept_answer(res_accept, results)) {
     // 答案不在范围内，进行重试
@@ -80,11 +78,8 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       return '输入超时，报名结束';
     }
   }
-  console.log(results);
   const output_pairs = Array.from(results.values()).map(r => [r.name, r.preitter_answer]);
   output_pairs.push(['QQ(报名使用)', session.userId]);
-  console.log(output_pairs);
-
   if (config.notice_users.length > 0) {
     config.notice_users.forEach(user => {
       setTimeout(() => {
