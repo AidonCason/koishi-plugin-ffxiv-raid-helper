@@ -1,9 +1,11 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
 import { dbSetup } from './constant/db';
-import {} from 'koishi-plugin-cron';
+import { } from 'koishi-plugin-cron';
 import { clearDict, noticeOneDayBefore } from './service/noticeService';
 import { commandSetup } from './commands';
+import { permissionsSetup } from './permissions';
+import { middlewareSetup } from './middleware';
 
 // 插件名
 export const name = 'ffxiv-raid-helper';
@@ -24,5 +26,7 @@ export function apply(ctx: Context, config: Config) {
   // 每天零点清理一次推送
   ctx.cron('* 0 * * *', clearDict);
 
+  middlewareSetup(ctx, config);
+  permissionsSetup(ctx, config);
   commandSetup(ctx, config);
 }
