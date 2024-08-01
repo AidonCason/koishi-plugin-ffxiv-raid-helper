@@ -48,13 +48,19 @@ const onQuestion = async (
 const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  // 免责条款
-  await session.sendQueued(
-    '欢迎报名，请仔细阅读并回答以下问题即可完成报名',
-    config.message_interval
-  );
   const raid = await selectRaid(ctx, config, session);
   if (!raid) return;
+  if (!raid.allow_sign_up) {
+    return '该团已关闭报名！';
+  }
+  // 开团前24小时截止报名
+  const now = new Date();
+  const deadline = new Date(raid.raid_time);
+  deadline.setHours(deadline.getHours() - 24);
+  if (now > deadline) {
+    return '开团前24小时截止报名，如有特殊情况请联系指挥';
+  }
+
   const raid_name = raid.raid_name;
 
   const sign_ups = await selectSignupByRaidName(ctx, raid_name);
@@ -67,6 +73,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return '已经报名过该团!';
   }
   if (
+    self &&
     self.history_content != '' &&
     JSON.parse(self.history_content).length > 1
   ) {
