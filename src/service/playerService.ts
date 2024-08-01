@@ -1,10 +1,18 @@
 import { Session, Context, Argv } from 'koishi';
 import { Config } from '../config/settings';
-import { ErrorCode, raid_sign_up_table_name } from '../constant/common';
+import { ErrorCode } from '../constant/common';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
 import { selectRaid } from '../utils/server';
 import { Answer, Question } from '../constant/question';
 import { getSheet } from '../constant/questionSheet';
+import {
+  cancelSignup,
+  checkSelfSignup,
+  createSignup,
+  reSignup,
+  selectSignupByRaidName
+} from '../dao/raidSignupDAO';
+import { sign } from 'crypto';
 
 const onQuestion = async (
   config: Config,
@@ -50,20 +58,22 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!raid) return;
   const raid_name = raid.raid_name;
 
-  const sign_ups = await ctx.database.get(raid_sign_up_table_name, {
-    raid_name: { $eq: raid_name }
-  });
-  if (sign_ups && sign_ups.length >= raid.max_members) {
+  const sign_ups = await selectSignupByRaidName(ctx, raid_name);
+  const self = sign_ups.find(s => s.user_id == session.userId);
+  // 报名满了，且非重新报名
+  if (!self && sign_ups && sign_ups.length >= raid.max_members) {
     return '已经报名满了，请下次再来或查看其他团';
   }
-
-  const sign_up = await ctx.database.get(raid_sign_up_table_name, {
-    user_id: { $eq: session.userId },
-    raid_name: { $eq: raid_name }
-  });
-  if (sign_up && sign_up.length > 0) {
+  if (self && self.content != '') {
     return '已经报名过该团!';
   }
+  if (
+    self.history_content != '' &&
+    JSON.parse(self.history_content).length > 1
+  ) {
+    return '取消报名过多，无法重新报名，如有需要请联系指挥说明';
+  }
+
   const server_name = raid.raid_server;
   const sheet = [...getSheet(server_name, config)].reverse();
   const results: Map<string, Answer> = new Map();
@@ -113,13 +123,17 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
   );
-  await ctx.database.create(raid_sign_up_table_name, {
-    raid_name,
-    user_id: session.userId,
-    content: JSON.stringify(output_pairs),
-    created_at: new Date(),
-    updated_at: new Date()
-  });
+  // create or update
+  if (!self) {
+    await createSignup(
+      ctx,
+      raid_name,
+      session.userId,
+      JSON.stringify(output_pairs)
+    );
+  } else {
+    await reSignup(ctx, self.id, JSON.stringify(output_pairs));
+  }
   return '报名提交成功!请关注群公告里面的报名结果~';
 };
 
@@ -130,10 +144,7 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!raid) return;
   const raid_name = raid.raid_name;
 
-  const sign_up = await ctx.database.get(raid_sign_up_table_name, {
-    user_id: { $eq: session.userId },
-    raid_name: { $eq: raid_name }
-  });
+  const sign_up = await checkSelfSignup(ctx, raid_name, session.userId);
   if (sign_up && sign_up.length > 0) {
     return (
       '已经提交报名申请:\n' +
@@ -141,6 +152,31 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
         .map(j => j[0] + ': ' + j[1])
         .join('\n')
     );
+  } else {
+    return '未报名该团!';
+  }
+};
+
+const cancelSignupHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
+  const raid_name = raid.raid_name;
+
+  const sign_up = await checkSelfSignup(ctx, raid_name, session.userId);
+  if (sign_up && sign_up.length > 0) {
+    // 留存历史方便查询大聪明
+    const history_content = JSON.stringify([
+      ...(JSON.parse(sign_up[0].history_content || '[]') as []),
+      JSON.parse(sign_up[0].content)
+    ]);
+    await cancelSignup(ctx, sign_up[0].id, history_content);
+    return '已取消报名申请';
   } else {
     return '未报名该团!';
   }
@@ -158,4 +194,9 @@ const contactLeaderHandler = async (
   return '指挥的联系方式为：qq： ' + raid.raid_leader;
 };
 
-export { applyHandler, checkSelfHandler, contactLeaderHandler };
+export {
+  applyHandler,
+  checkSelfHandler,
+  cancelSignupHandler,
+  contactLeaderHandler
+};

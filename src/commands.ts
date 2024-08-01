@@ -7,6 +7,7 @@ import {
 } from './service/managerService';
 import {
   applyHandler,
+  cancelSignupHandler,
   checkSelfHandler,
   contactLeaderHandler
 } from './service/playerService';
@@ -56,6 +57,10 @@ export function commandSetup(ctx: Context, config: Config) {
 
   ctx.command('查看报名申请').action(async argv => {
     return await checkSelfHandler(ctx, config, argv);
+  });
+
+  ctx.command('取消报名').action(async argv => {
+    return await cancelSignupHandler(ctx, config, argv);
   });
 
   ctx.command('联系指挥').action(async argv => {
