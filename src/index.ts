@@ -3,7 +3,6 @@ import { Config } from './config/settings';
 import { dbSetup } from './constant/db';
 import {} from 'koishi-plugin-cron';
 import {
-  clearDict,
   noticeOneDayBefore,
   noticeTwoHoursBefore
 } from './service/noticeService';

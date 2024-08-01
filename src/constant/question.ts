@@ -64,8 +64,8 @@ export type QuestionDefine =
   | SignleChoiceQuestionDefine;
 
 export class TextQuestion extends TextQuestionDefine {
-  construct_content: (input: AnswerMap) => string = _ => this.content;
-  accept_answer: (answer: string, input: AnswerMap) => boolean = _ => true;
+  construct_content: (input: AnswerMap) => string = () => this.content;
+  accept_answer: (answer: string, input: AnswerMap) => boolean = () => true;
   construct_preitter_answer: (answer: string, input: AnswerMap) => string =
     answer => answer;
 
@@ -78,7 +78,7 @@ export class TextQuestion extends TextQuestionDefine {
 export class BooleanQuestion extends BooleanQuestionDefine {
   answer_range: [number, number] = [1, 0];
   answer_range_desc: [string, string] = ['是', '否'];
-  construct_content: (input: AnswerMap) => string = _ =>
+  construct_content: (input: AnswerMap) => string = () =>
     `${this.content}\n(${this.answer_range[0]}-${this.answer_range_desc[0]}/${this.answer_range[1]}-${this.answer_range_desc[1]})`;
   accept_answer: (answer: string, input: AnswerMap) => boolean = answer => {
     const num = parseInt(answer);
@@ -99,7 +99,7 @@ export class BooleanQuestion extends BooleanQuestionDefine {
 }
 
 export class SignleChoiceQuestion extends SignleChoiceQuestionDefine {
-  construct_range: (input: AnswerMap) => ReadonlyMap<string, string> = _ => {
+  construct_range: (input: AnswerMap) => ReadonlyMap<string, string> = () => {
     if (!this.answer_range && !this.answer_range_desc) {
       throw new Error('answer_range or answer_range_desc must be set');
     }
