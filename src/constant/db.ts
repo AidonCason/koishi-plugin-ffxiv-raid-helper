@@ -1,5 +1,5 @@
-import { Context } from "koishi";
-import { raid_sign_up_table_name, raid_table_name } from "./common";
+import { Context } from 'koishi';
+import { raid_sign_up_table_name, raid_table_name } from './common';
 
 declare module 'koishi' {
   interface Tables {
