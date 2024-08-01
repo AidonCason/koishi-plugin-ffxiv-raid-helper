@@ -1,8 +1,9 @@
 import { Bot, Context } from 'koishi';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
-import { raid_sign_up_table_name, raid_table_name } from '../constant/common';
 import { locale_settings } from '../utils/locale';
+import { selectByDateBetween } from '../dao/raidDAO';
+import { selectSignupByRaidName } from '../dao/raidSignupDAO';
 
 const noticeToPrivage = async (
   ctx: Context,
@@ -44,23 +45,33 @@ const noticeToGroup = async (
   bot.sendMessage(group_id, message, group_id);
 };
 
-const pushDict = new Map<string, Date>();
 const noticeOneDayBefore = async (ctx: Context, config: Config) => {
   const now = new Date();
-  const oneDayAfter = new Date(now);
-  oneDayAfter.setDate(now.getDate() + 1);
-  // oneDayAfter.setHours(now.getHours() - 1);
-  const oneDayAfter2 = new Date(now);
-  oneDayAfter2.setDate(now.getDate() + 1);
-  // oneDayAfter2.setHours(now.getHours() - 1);
-  oneDayAfter2.setMinutes(now.getMinutes() + 5);
+  const begin_time = new Date(now);
+  begin_time.setDate(now.getDate() + 1);
+  const end_time = new Date(now);
+  end_time.setDate(now.getDate() + 1);
+  end_time.setMinutes(now.getMinutes() + 5);
+  return await noticeBefore(ctx, config, begin_time, end_time);
+};
 
-  const raidList = await ctx.model.get(raid_table_name, {
-    raid_time: {
-      $gte: oneDayAfter,
-      $lte: oneDayAfter2
-    }
-  });
+const noticeTwoHoursBefore = async (ctx: Context, config: Config) => {
+  const now = new Date();
+  const begin_time = new Date(now);
+  begin_time.setHours(now.getHours() + 1);
+  const end_time = new Date(now);
+  end_time.setHours(now.getHours() + 1);
+  end_time.setMinutes(now.getMinutes() + 5);
+  return await noticeBefore(ctx, config, begin_time, end_time);
+};
+
+const noticeBefore = async (
+  ctx: Context,
+  config: Config,
+  begin_time: Date,
+  end_time: Date
+) => {
+  const raidList = await selectByDateBetween(ctx, begin_time, end_time);
 
   if (raidList.length == 0) return;
   const bot = ctx.bots.find(bot => bot.platform == 'onebot');
@@ -73,23 +84,17 @@ const noticeOneDayBefore = async (ctx: Context, config: Config) => {
     const msg = `团 ${e.raid_name} 将于 ${e.raid_time.toLocaleString(locale_settings.current)} 发车`;
     logger.info(msg);
 
-    const sign_ups = await ctx.model.get(raid_sign_up_table_name, {
-      raid_name: { $gt: e.raid_name }
-    });
+    const sign_ups = await selectSignupByRaidName(ctx, e.raid_name);
 
     sign_ups.forEach(async s => {
-      const key = `${e.raid_name}_private_${s.user_id}`;
-      if (!pushDict[key]) {
-        noticeToPrivage(ctx, config, bot, s.user_id, msg);
-        pushDict[key] = now;
-        // todo 清理或者优化
-      }
+      noticeToPrivage(ctx, config, bot, s.user_id, msg);
     });
   });
 };
 
-const clearDict = () => {
-  pushDict.clear();
+export {
+  noticeToPrivage,
+  noticeToGroup,
+  noticeOneDayBefore,
+  noticeTwoHoursBefore
 };
-
-export { noticeToPrivage, noticeToGroup, noticeOneDayBefore, clearDict };
