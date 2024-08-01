@@ -12,7 +12,6 @@ import {
   reSignup,
   selectSignupByRaidName
 } from '../dao/raidSignupDAO';
-import { sign } from 'crypto';
 
 const onQuestion = async (
   config: Config,
