@@ -18,7 +18,11 @@
     "name": "Aidon",
     "email": "silverblade999@outlook.com"
   },
-  "contributors": [],
+  "contributors": [
+    {
+      "name": "Autumn Sound"
+    }
+  ],
   "homepage": "https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper",
   "repository": {
     "type": "git",
