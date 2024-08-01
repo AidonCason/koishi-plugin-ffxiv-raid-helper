@@ -28,6 +28,7 @@ export interface RaidSignUpTable {
   user_id: string; // 用户id
   content: string; // 报名内容
   history_content: string; // 报名内容
+  is_canceled: boolean; // 是否取消报名
   created_at: Date;
   updated_at: Date;
 }
@@ -62,6 +63,7 @@ export function dbSetup(ctx: Context) {
       user_id: 'string', // 用户id
       content: 'text', // 报名内容
       history_content: 'text', // 报名内容
+      is_canceled: 'boolean', // 是否取消报名
       created_at: 'timestamp',
       updated_at: 'timestamp'
     },
