@@ -8,7 +8,7 @@ export function middlewareSetup(ctx: Context, config: Config) {
     if (!session.guildId) return next();
     if (!config.server_group_map) return next();
 
-    for (const [_, server_ids] of Object.entries(config.server_group_map)) {
+    for (const [, server_ids] of Object.entries(config.server_group_map)) {
       if (server_ids.includes(session.guildId)) {
         return next();
       }
