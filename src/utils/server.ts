@@ -1,7 +1,8 @@
-import { $, Context, Session } from 'koishi';
-import { raid_sign_up_table_name, raid_table_name } from '../constant/common';
+import { Context, Session } from 'koishi';
 import { RaidListTable } from '../constant/db';
 import { Config } from '../config/settings';
+import { selectByDateAfter } from '../dao/raidDAO';
+import { countByRaids } from '../dao/raidSignupDAO';
 
 const getServerName = async (
   ctx: Context,
@@ -20,25 +21,14 @@ const getServerName = async (
 };
 
 const getRaids = async (ctx: Context) => {
-  return await ctx.database.get(raid_table_name, {
-    raid_time: { $gt: new Date() }
-  });
+  return await selectByDateAfter(ctx, new Date());
 };
 
 // 获取展示的团信息
 const getRaidInfo = async (ctx: Context, raids?: RaidListTable[]) => {
   if (!raids) raids = await getRaids(ctx);
   if (!raids) return;
-  const sign_ups = await ctx.database
-    .select(raid_sign_up_table_name)
-    .groupBy('raid_name', { count: row => $.count(row.id) })
-    .where(row =>
-      $.in(
-        row.raid_name,
-        raids.map(raid => raid.raid_name)
-      )
-    )
-    .execute();
+  const sign_ups = await countByRaids(ctx, raids);
   return raids.map(
     raid =>
       `${raid.raid_server} - ${raid.raid_name} 时间： ${raid.raid_time.toLocaleString()} 报名人数： ${sign_ups.find(d => d.raid_name == raid.raid_name)?.count ?? 0}/${raid.max_members}`

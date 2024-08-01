@@ -1,5 +1,4 @@
 import { Argv, Context, h } from 'koishi';
-import { raid_sign_up_table_name, raid_table_name } from '../constant/common';
 import { date_locale_options, locale_settings } from '../utils/locale';
 import {} from 'koishi-plugin-adapter-onebot';
 import { Config } from '../config/settings';
@@ -9,6 +8,8 @@ import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as iconv from 'iconv-lite';
 import { getRaidInfo, getServerName, selectRaid } from '../utils/server';
+import { createRaid, selectByName } from '../dao/raidDAO';
+import { selectSignupByRaidName } from '../dao/raidSignupDAO';
 
 // 指挥开团
 const openRaidHandler = async (
@@ -19,42 +20,25 @@ const openRaidHandler = async (
   raid_time: Date
 ) => {
   if (!argv?.session) return;
-  if (!ctx.database) {
-    return '数据库未就绪，请联系管理员';
-  }
 
   if (!raid_name || raid_name.length <= 0 || !raid_time) {
     return '名称或日期格式错误！参考：开团 114团 2024-01-01T20:00';
   }
 
   const session = argv.session;
-  const one = await ctx.database.get(raid_table_name, {
-    raid_name: { $eq: raid_name }
-  });
+  const one = await selectByName(ctx, raid_name);
   if (one && one.length > 0) {
     return '团已经存在！';
   }
   // TODO: 需要保证在群里调用
   const server_name = await getServerName(ctx, config, session);
   if (!server_name) return;
-  await ctx.database.create(raid_table_name, {
-    raid_name,
-    max_members: 40,
-    raid_leader: session.userId,
-    raid_time: raid_time,
-    raid_server: server_name,
-    allow_sign_up: true,
-    created_at: new Date(),
-    updated_at: new Date()
-  });
+  await createRaid(ctx, raid_name, 40, session.userId, raid_time, server_name);
   return '开团成功!';
 };
 
 const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
-  if (!ctx.database) {
-    return '数据库未就绪，请联系管理员';
-  }
   const radi_infos = await getRaidInfo(ctx);
   if (radi_infos) {
     return '当前有如下团:\n' + radi_infos.join('\n');
@@ -69,9 +53,7 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const raid = await selectRaid(ctx, config, session);
   if (!raid) return;
   const raid_name = raid.raid_name;
-  const sign_up = await ctx.database.get(raid_sign_up_table_name, {
-    raid_name: { $eq: raid_name }
-  });
+  const sign_up = await selectSignupByRaidName(ctx, raid_name);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   } else {
@@ -113,9 +95,7 @@ const exportHandler = async (
   if (!raid) return;
   const raid_name = raid.raid_name;
 
-  const sign_up = await ctx.database.get(raid_sign_up_table_name, {
-    raid_name: { $eq: raid_name }
-  });
+  const sign_up = await selectSignupByRaidName(ctx, raid_name);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   } else {
