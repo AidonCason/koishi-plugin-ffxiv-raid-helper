@@ -1,9 +1,6 @@
 import { Session, Context, Argv } from 'koishi';
 import { Config } from '../config/settings';
-import {
-  ErrorCode,
-  raid_sign_up_table_name,
-} from '../constant/common';
+import { ErrorCode, raid_sign_up_table_name } from '../constant/common';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
 import { selectRaid } from '../utils/server';
 import { Answer, Question } from '../constant/question';
@@ -20,7 +17,10 @@ const onQuestion = async (
     return ErrorCode.RejectRange;
   }
 
-  await session.sendQueued(problem.construct_content(results), config.message_interval);
+  await session.sendQueued(
+    problem.construct_content(results),
+    config.message_interval
+  );
   const res_accept = await session.prompt();
   if (!res_accept) return ErrorCode.Timeout;
 
@@ -33,8 +33,8 @@ const onQuestion = async (
     label: problem.label,
     name: problem.name,
     answer: res_accept,
-    preitter_answer: problem.construct_preitter_answer(res_accept, results),
-  })
+    preitter_answer: problem.construct_preitter_answer(res_accept, results)
+  });
   return ErrorCode.OK;
 };
 
@@ -46,10 +46,9 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     '欢迎报名，请仔细阅读并回答以下问题即可完成报名',
     config.message_interval
   );
-  const raid = await selectRaid(ctx, config, session)
-  if (!raid)
-    return
-  const raid_name = raid.raid_name
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
+  const raid_name = raid.raid_name;
 
   const sign_ups = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
@@ -78,7 +77,10 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       return '输入超时，报名结束';
     }
   }
-  const output_pairs = Array.from(results.values()).map(r => [r.name, r.preitter_answer]);
+  const output_pairs = Array.from(results.values()).map(r => [
+    r.name,
+    r.preitter_answer
+  ]);
   output_pairs.push(['QQ(报名使用)', session.userId]);
   if (config.notice_users.length > 0) {
     config.notice_users.forEach(user => {
@@ -124,10 +126,9 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session)
-  if (!raid)
-    return
-  const raid_name = raid.raid_name
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
+  const raid_name = raid.raid_name;
 
   const sign_up = await ctx.database.get(raid_sign_up_table_name, {
     user_id: { $eq: session.userId },
@@ -152,9 +153,8 @@ const contactLeaderHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session)
-  if (!raid)
-    return
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
   return '指挥的联系方式为：qq： ' + raid.raid_leader;
 };
 
