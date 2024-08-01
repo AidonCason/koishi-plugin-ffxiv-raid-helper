@@ -1,7 +1,7 @@
-import { $, Argv, Context, h } from 'koishi';
+import { Argv, Context, h } from 'koishi';
 import { raid_sign_up_table_name, raid_table_name } from '../constant/common';
 import { date_locale_options, locale_settings } from '../utils/locale';
-import { } from 'koishi-plugin-adapter-onebot';
+import {} from 'koishi-plugin-adapter-onebot';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import * as fs from 'fs/promises';
@@ -36,8 +36,7 @@ const openRaidHandler = async (
   }
   // TODO: 需要保证在群里调用
   const server_name = await getServerName(ctx, config, session);
-  if (!server_name)
-    return
+  if (!server_name) return;
   await ctx.database.create(raid_table_name, {
     raid_name,
     max_members: 40,
@@ -58,10 +57,7 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   }
   const radi_infos = await getRaidInfo(ctx);
   if (radi_infos) {
-    return (
-      '当前有如下团:\n' +
-      radi_infos.join('\n')
-    );
+    return '当前有如下团:\n' + radi_infos.join('\n');
   } else {
     return '未查询到当前有团';
   }
@@ -70,10 +66,9 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session)
-  if (!raid)
-    return
-  const raid_name = raid.raid_name
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
+  const raid_name = raid.raid_name;
   const sign_up = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
   });
@@ -114,10 +109,9 @@ const exportHandler = async (
   if (encoding && encoding! in ['utf8', 'gb2312']) {
     return '不支持的编码';
   }
-  const raid = await selectRaid(ctx, config, session)
-  if (!raid)
-    return
-  const raid_name = raid.raid_name
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
+  const raid_name = raid.raid_name;
 
   const sign_up = await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name }
