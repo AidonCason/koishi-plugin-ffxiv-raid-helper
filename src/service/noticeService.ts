@@ -3,7 +3,7 @@ import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import { locale_settings } from '../utils/locale';
 import { selectByDateBetween } from '../dao/raidDAO';
-import { selectSignupByRaidName } from '../dao/raidSignupDAO';
+import { selectValidSignupByRaidName } from '../dao/raidSignupDAO';
 
 const noticeToPrivage = async (
   ctx: Context,
@@ -84,7 +84,7 @@ const noticeBefore = async (
     const msg = `团 ${e.raid_name} 将于 ${e.raid_time.toLocaleString(locale_settings.current)} 发车`;
     logger.info(msg);
 
-    const sign_ups = await selectSignupByRaidName(ctx, e.raid_name);
+    const sign_ups = await selectValidSignupByRaidName(ctx, e.raid_name);
 
     sign_ups.forEach(async s => {
       noticeToPrivage(ctx, config, bot, s.user_id, msg);

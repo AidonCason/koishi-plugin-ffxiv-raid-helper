@@ -1,50 +1,26 @@
-import { Session, Context, Argv } from 'koishi';
+import { Context, Argv } from 'koishi';
 import { Config } from '../config/settings';
 import { ErrorCode } from '../constant/common';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
 import { selectRaid } from '../utils/server';
-import { Answer, Question } from '../constant/question';
+import {
+  Answer,
+  buildQuestion,
+  Question,
+  QuestionType
+} from '../constant/question';
 import { getSheet } from '../constant/questionSheet';
 import {
   cancelSignup,
-  checkSelfSignup,
   createSignup,
   reSignup,
-  selectSignupByRaidName
+  selectAllCanceledSignupByRaidNameAndUserId,
+  selectAllValidSignupByRaidNameAndUserId,
+  selectValidSignupByRaidName
 } from '../dao/raidSignupDAO';
 import { getNoticeGroups, getNoticeUsers } from '../utils/raid';
-
-const onQuestion = async (
-  config: Config,
-  session: Session,
-  problem: Question,
-  results: Map<string, Answer>,
-  retry_time: number = 0
-) => {
-  if (retry_time > 3) {
-    return ErrorCode.RejectRange;
-  }
-
-  await session.sendQueued(
-    problem.construct_content(results),
-    config.message_interval
-  );
-  const res_accept = await session.prompt();
-  if (!res_accept) return ErrorCode.Timeout;
-
-  if (!problem.accept_answer(res_accept, results)) {
-    // 答案不在范围内，进行重试
-    await session.sendQueued('输入不合法，请重新输入', config.message_interval);
-    return onQuestion(config, session, problem, results, retry_time + 1);
-  }
-  results.set(problem.label, {
-    label: problem.label,
-    name: problem.name,
-    answer: res_accept,
-    preitter_answer: problem.construct_preitter_answer(res_accept, results)
-  });
-  return ErrorCode.OK;
-};
+import logger from '../utils/logger';
+import { askOneQuestion, onQuestion } from '../utils/question';
 
 const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
@@ -64,20 +40,36 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
 
   const raid_name = raid.raid_name;
 
-  const sign_ups = await selectSignupByRaidName(ctx, raid_name);
+  const sign_ups = await selectValidSignupByRaidName(ctx, raid_name);
   const self = sign_ups.find(s => s.user_id == session.userId);
   // 报名满了，且非重新报名
   if (!self && sign_ups && sign_ups.length >= raid.max_members) {
     return '已经报名满了，请下次再来或查看其他团';
   }
+  logger.debug('self:', self);
   if (self && self.content != '') {
-    return '已经报名过该团!';
+    const whether_re_signup_question: Question = buildQuestion({
+      label: 'whether_re_signup',
+      type: QuestionType.Boolean,
+      name: '是否重新报名',
+      content: '你已经报名过了，是否重新报名'
+    });
+    const answer = await askOneQuestion(
+      config,
+      session,
+      whether_re_signup_question
+    );
+    if (!answer || answer.preitter_answer == '否') {
+      return '取消报名';
+    }
   }
-  if (
-    self &&
-    self.history_content != '' &&
-    JSON.parse(self.history_content).length > 1
-  ) {
+
+  const self_signups = await selectAllCanceledSignupByRaidNameAndUserId(
+    ctx,
+    raid_name,
+    session.userId
+  );
+  if (self_signups && self_signups.length > 3) {
     return '取消报名过多，无法重新报名，如有需要请联系指挥说明';
   }
 
@@ -87,7 +79,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   while (sheet.length > 0) {
     const q = sheet.pop();
     const res_code = await onQuestion(config, session, q, results);
-    if (res_code == ErrorCode.RejectRange) {
+    if (res_code == ErrorCode.MaxRetry) {
       return '失败次数过多，报名退出';
     }
     if (res_code == ErrorCode.Timeout) {
@@ -99,7 +91,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     r.preitter_answer
   ]);
   output_pairs.push(['QQ(报名使用)', session.userId]);
-  const notice_users = getNoticeUsers(config, raid_name);
+  const notice_users = await getNoticeUsers(ctx, config, raid_name);
   if (notice_users.length > 0) {
     notice_users.forEach(user => {
       setTimeout(() => {
@@ -114,7 +106,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     });
   }
 
-  const notice_groups = getNoticeGroups(config, raid_name);
+  const notice_groups = await getNoticeGroups(ctx, config, raid_name);
   if (notice_groups.length > 0) {
     notice_groups.forEach(group => {
       setTimeout(() => {
@@ -153,7 +145,11 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!raid) return;
   const raid_name = raid.raid_name;
 
-  const sign_up = await checkSelfSignup(ctx, raid_name, session.userId);
+  const sign_up = await selectAllValidSignupByRaidNameAndUserId(
+    ctx,
+    raid_name,
+    session.userId
+  );
   if (sign_up && sign_up.length > 0) {
     return (
       '已经提交报名申请:\n' +
@@ -177,47 +173,47 @@ const cancelSignupHandler = async (
   if (!raid) return;
   const raid_name = raid.raid_name;
 
-  const sign_up = await checkSelfSignup(ctx, raid_name, session.userId);
-  if (sign_up && sign_up.length > 0) {
-    // 留存历史方便查询大聪明
-    const history_content = [
-      ...(JSON.parse(sign_up[0].history_content || '[]') as []),
-      JSON.parse(sign_up[0].content)
-    ];
-    await cancelSignup(ctx, sign_up[0].id, JSON.stringify(history_content));
-    const notice_users = getNoticeUsers(config, raid_name);
-    if (notice_users.length > 0) {
-      notice_users.forEach(user => {
-        setTimeout(() => {
-          noticeToPrivage(
-            ctx,
-            config,
-            session.bot,
-            user,
-            `${raid_name} ${session.userId}取消报名，当前第${history_content.length}次`
-          );
-        }, config.message_interval);
-      });
-    }
-
-    const notice_groups = getNoticeGroups(config, raid_name);
-    if (notice_groups.length > 0) {
-      notice_groups.forEach(group => {
-        setTimeout(() => {
-          noticeToGroup(
-            ctx,
-            config,
-            session.bot,
-            group,
-            `${raid_name} ${session.userId}取消报名，当前第${history_content.length}次`
-          );
-        }, config.message_interval);
-      });
-    }
-    return '已取消报名申请';
-  } else {
+  const sign_ups = await selectAllValidSignupByRaidNameAndUserId(
+    ctx,
+    raid_name,
+    session.userId
+  );
+  if (!sign_ups || sign_ups.length == 0) {
     return '未报名该团!';
   }
+  for (const sign_up of sign_ups) {
+    await cancelSignup(ctx, sign_up.id);
+  }
+  const notice_users = await getNoticeUsers(ctx, config, raid_name);
+  if (notice_users.length > 0) {
+    notice_users.forEach(user => {
+      setTimeout(() => {
+        noticeToPrivage(
+          ctx,
+          config,
+          session.bot,
+          user,
+          `${raid_name} ${session.userId}取消报名`
+        );
+      }, config.message_interval);
+    });
+  }
+
+  const notice_groups = await getNoticeGroups(ctx, config, raid_name);
+  if (notice_groups.length > 0) {
+    notice_groups.forEach(group => {
+      setTimeout(() => {
+        noticeToGroup(
+          ctx,
+          config,
+          session.bot,
+          group,
+          `${raid_name} ${session.userId}取消报名`
+        );
+      }, config.message_interval);
+    });
+  }
+  return '已取消报名申请';
 };
 
 const contactLeaderHandler = async (

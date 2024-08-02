@@ -9,7 +9,10 @@ import { pathToFileURL } from 'url';
 import * as iconv from 'iconv-lite';
 import { getRaidInfo, getServerName, selectRaid } from '../utils/server';
 import { closeSignup, createRaid, selectByName } from '../dao/raidDAO';
-import { selectSignupByRaidName } from '../dao/raidSignupDAO';
+import { selectValidSignupByRaidName } from '../dao/raidSignupDAO';
+import { getGroupNameByGroupId, getGroupNameByLeaderId } from '../utils/raid';
+import { buildQuestion, Question, QuestionType } from '../constant/question';
+import { askOneQuestion } from '../utils/question';
 
 // 指挥开团
 const openRaidHandler = async (
@@ -30,10 +33,40 @@ const openRaidHandler = async (
   if (one && one.length > 0) {
     return '团已经存在！';
   }
-  // TODO: 需要保证在群里调用
   const server_name = await getServerName(ctx, config, session);
   if (!server_name) return;
-  await createRaid(ctx, raid_name, 40, session.userId, raid_time, server_name);
+  let group_names = [];
+  if (session.guildId) {
+    group_names = group_names.concat(
+      getGroupNameByGroupId(config, session.guildId)
+    );
+  }
+  if (group_names.length == 0) {
+    group_names = getGroupNameByLeaderId(config, session.userId);
+  }
+  if (group_names.length == 0) {
+    return '请在指定的群组内开团';
+  }
+  if (group_names.length > 1) {
+    const group_choice_question: Question = buildQuestion({
+      label: 'group_name',
+      type: QuestionType.SignleChoice,
+      name: '选择团',
+      content: '请选择一个团内开团',
+      answer_range_desc: group_names
+    });
+    const answer = await askOneQuestion(config, session, group_choice_question);
+    group_names = [answer.preitter_answer];
+  }
+  await createRaid(
+    ctx,
+    group_names[0],
+    raid_name,
+    40,
+    session.userId,
+    raid_time,
+    server_name
+  );
   return '开团成功!';
 };
 
@@ -64,7 +97,7 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const raid = await selectRaid(ctx, config, session);
   if (!raid) return;
   const raid_name = raid.raid_name;
-  const sign_up = await selectSignupByRaidName(ctx, raid_name);
+  const sign_up = await selectValidSignupByRaidName(ctx, raid_name);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   } else {
@@ -106,11 +139,10 @@ const exportHandler = async (
   if (!raid) return;
   const raid_name = raid.raid_name;
 
-  const sign_up = await selectSignupByRaidName(ctx, raid_name);
+  const sign_up = await selectValidSignupByRaidName(ctx, raid_name);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   } else {
-    // todo 导出csv文件
     const title =
       JSON.parse(sign_up[0].content)
         .slice(2)

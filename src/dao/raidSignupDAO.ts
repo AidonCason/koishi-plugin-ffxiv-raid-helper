@@ -7,13 +7,68 @@ import { raid_sign_up_table_name } from '../constant/common';
  * @param raid_name 团名
  * @returns RaidSignUpTable[]
  */
-export const selectSignupByRaidName = async (
+export const selectValidSignupByRaidName = async (
   ctx: Context,
   raid_name: string
 ): Promise<RaidSignUpTable[]> => {
   return await ctx.database.get(raid_sign_up_table_name, {
     raid_name: { $eq: raid_name },
     is_canceled: { $eq: false }
+  });
+};
+
+/**
+ * 查询该团某成员所有报名申请
+ * @param raid_name 团名
+ * @param user_id 用户id，一般为qq号
+ * @returns RaidSignUpTable[]
+ */
+export const selectAllSignupByRaidNameAndUserId = async (
+  ctx: Context,
+  raid_name: string,
+  user_id: string
+): Promise<RaidSignUpTable[]> => {
+  return await ctx.database.get(raid_sign_up_table_name, {
+    raid_name: { $eq: raid_name },
+    user_id: { $eq: user_id }
+  });
+};
+
+/**
+ * 查询该团某成员所有有效的报名申请
+ * @param ctx
+ * @param raid_name 团名
+ * @param user_id 用户id，一般为qq号
+ * @returns RaidSignUpTable[]
+ */
+export const selectAllValidSignupByRaidNameAndUserId = async (
+  ctx: Context,
+  raid_name: string,
+  user_id: string
+): Promise<RaidSignUpTable[]> => {
+  return await ctx.database.get(raid_sign_up_table_name, {
+    raid_name: { $eq: raid_name },
+    user_id: { $eq: user_id },
+    is_canceled: { $eq: false }
+  });
+};
+
+/**
+ * 查询该团某成员所有取消的报名申请
+ * @param ctx
+ * @param raid_name 团名
+ * @param user_id 用户id，一般为qq号
+ * @returns RaidSignUpTable[]
+ */
+export const selectAllCanceledSignupByRaidNameAndUserId = async (
+  ctx: Context,
+  raid_name: string,
+  user_id: string
+): Promise<RaidSignUpTable[]> => {
+  return await ctx.database.get(raid_sign_up_table_name, {
+    raid_name: { $eq: raid_name },
+    user_id: { $eq: user_id },
+    is_canceled: { $eq: true }
   });
 };
 
@@ -36,24 +91,6 @@ export const createSignup = async (
     is_canceled: false,
     created_at: new Date(),
     updated_at: new Date()
-  });
-};
-
-/**
- * 查询自己的报名申请
- * @param raid_name 团名
- * @param user_id 用户id，一般为qq号
- * @returns RaidSignUpTable[]
- */
-export const checkSelfSignup = async (
-  ctx: Context,
-  raid_name: string,
-  user_id: string
-): Promise<RaidSignUpTable[]> => {
-  return await ctx.database.get(raid_sign_up_table_name, {
-    user_id: { $eq: user_id },
-    raid_name: { $eq: raid_name },
-    is_canceled: { $eq: false }
   });
 };
 
@@ -84,13 +121,11 @@ export const reSignup = async (
  */
 export const cancelSignup = async (
   ctx: Context,
-  id: number,
-  history_content: string
+  id: number
 ): Promise<Driver.WriteResult> => {
   return await ctx.database.upsert(raid_sign_up_table_name, () => [
     {
       id,
-      history_content,
       is_canceled: true,
       updated_at: new Date()
     }

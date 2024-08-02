@@ -11,6 +11,7 @@ declare module 'koishi' {
 // 团表
 export interface RaidListTable {
   id: number;
+  group_name: string;
   raid_name: string; // 团名
   max_members: number; // 接纳报名的最大人数
   raid_leader: string; // 指挥qq
@@ -27,7 +28,6 @@ export interface RaidSignUpTable {
   raid_name: string; // 团名
   user_id: string; // 用户id
   content: string; // 报名内容
-  history_content: string; // 报名内容
   is_canceled: boolean; // 是否取消报名
   created_at: Date;
   updated_at: Date;
@@ -38,6 +38,7 @@ export function dbSetup(ctx: Context) {
     raid_table_name,
     {
       id: 'unsigned',
+      group_name: 'string',
       raid_name: 'string', // 团名
       max_members: 'unsigned', // 接纳报名的最大人数
       raid_leader: 'string', // 指挥qq
@@ -62,14 +63,15 @@ export function dbSetup(ctx: Context) {
       raid_name: 'string', // 团名
       user_id: 'string', // 用户id
       content: 'text', // 报名内容
-      history_content: 'text', // 报名内容
-      is_canceled: 'boolean', // 是否取消报名
+      is_canceled: {
+        type: 'boolean',
+        initial: false
+      },
       created_at: 'timestamp',
       updated_at: 'timestamp'
     },
     {
       primary: 'id',
-      unique: [['raid_name', 'user_id']], // 同一团一人只能报名一次
       foreign: null,
       autoInc: true
     }

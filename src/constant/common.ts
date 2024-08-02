@@ -2,8 +2,7 @@ const enum ErrorCode {
   Unknown = -1,
   OK = 0,
   Timeout,
-  Reject,
-  RejectRange
+  MaxRetry
 }
 
 // 全局表前缀
