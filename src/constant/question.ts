@@ -154,7 +154,9 @@ export class SignleChoiceQuestion extends SignleChoiceQuestionDefine {
       throw new Error('answer_range or answer_range_desc must be set');
     }
     // 如果只设置了一个，那么自动构建另一个
-    this.answer_range = this.answer_range ?? this.answer_range_desc;
+    this.answer_range =
+      this.answer_range ??
+      this.answer_range_desc.map((_, idx) => (idx + 1).toString());
     this.answer_range_desc =
       this.answer_range_desc ?? this.answer_range.map(e => e.toString());
     // 选项和选项描述长度需要一致
@@ -174,7 +176,7 @@ export class SignleChoiceQuestion extends SignleChoiceQuestionDefine {
     const range = this.construct_range(input);
     // 展示选项，如果选项和选项描述一致则只展示选项，否则展示选项和选项描述
     const choices = Array.from(range.entries()).map(([key, value]) =>
-      key == value ? value : `${key}-${value}`
+      key == value ? value : `${key} - ${value}`
     );
     // 找出选项中最长的长度
     const max_len = Math.max(...choices.map(e => e.length));
