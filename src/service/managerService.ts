@@ -33,26 +33,33 @@ const openRaidHandler = async (
     return '团已经存在！';
   }
   const group_name_server_name_map = new Map<string, string>();
+  // 如果在群组内开团
   if (session.guildId) {
+    // 以群号查找是哪个团
     Object.entries(config.group_config_map).map(([group_name, group]) => {
       if (group.groups.findIndex(g => g.group_id == session.guildId) > 0) {
         group_name_server_name_map.set(group_name, group.server);
       }
     });
   }
+  // 如果没查到
   if (group_name_server_name_map.size == 0) {
+    // 通过发送的userId查找是哪个团
     Object.entries(config.group_config_map).map(([group_name, group]) => {
       if (group.leaders.findIndex(l => l.user_id == session.userId) > 0) {
         group_name_server_name_map.set(group_name, group.server);
       }
     });
   }
-  let group_name = group_name_server_name_map.keys().next().value;
-  let server_name = group_name_server_name_map.values().next().value;
+  // 还是没查到
   if (group_name_server_name_map.size == 0) {
     return '请在指定的群组内开团';
   }
+  // 如果只有一个团，那么就不用选择了
+  let group_name = group_name_server_name_map.keys().next().value;
+  let server_name = group_name_server_name_map.values().next().value;
   if (group_name_server_name_map.size > 1) {
+    // 选择哪个团
     const group_choice_question: Question = buildQuestion({
       label: 'group_name',
       type: QuestionType.SignleChoice,
@@ -61,7 +68,7 @@ const openRaidHandler = async (
       answer_range_desc: Array.from(group_name_server_name_map.keys())
     });
     const answer = await askOneQuestion(config, session, group_choice_question);
-    if (!answer) return;
+    if (!answer) return '取消开团';
     group_name = answer.preitter_answer;
     server_name = group_name_server_name_map.get(group_name);
   }

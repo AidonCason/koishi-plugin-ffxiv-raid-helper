@@ -103,7 +103,7 @@ export const getSheet = (server_name: string, config: Config) => {
       label: '9',
       name: '红色勋章层数',
       type: QuestionType.SignleChoice,
-      content: '请您输入角色现有红色的战斗勋章层数:\n',
+      content: '请您输入角色现有红色的战斗勋章层数:',
       answer_range: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     },
     // {
