@@ -66,17 +66,23 @@ export const Config: Schema<Config> = Schema.object({
           notice: Schema.boolean().description('接收消息通知'),
           admin: Schema.boolean().description('拥有admin权限')
         })
-      ).description('指挥列表'),
+      )
+        .role('table')
+        .description('指挥列表'),
       groups: Schema.array(
         Schema.object({
           group_id: Schema.string().description('群组id'),
           notice: Schema.boolean().description('接收消息通知')
         })
-      ).description('相关的群列表'),
+      )
+        .role('table')
+        .description('相关的群列表'),
       servers: Schema.array(
         Schema.object({
           name: Schema.string().description('服务器名，一般是大区'),
-          children: Schema.array(Schema.string()).description('小区服务器名')
+          children: Schema.array(Schema.string())
+            .role('table')
+            .description('小区服务器名')
         })
       ).description('相关的区服列表'),
       ignore_server: Schema.boolean().description('跨区支持，开启后不关注区服')
