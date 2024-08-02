@@ -5,6 +5,7 @@ import { selectByDateAfter } from '../dao/raidDAO';
 import { countByRaids } from '../dao/raidSignupDAO';
 import { buildQuestion, QuestionType } from '../constant/question';
 import { askOneQuestion } from './question';
+import { date_locale_options, locale_settings } from './locale';
 
 export const getServerGroupMap = (config: Config) => {
   return new Map(
@@ -26,7 +27,7 @@ export const getRaidInfo = async (ctx: Context, raids?: RaidListTable[]) => {
   const sign_ups = await countByRaids(ctx, raids);
   return raids.map(
     raid =>
-      `${raid.raid_server} - ${raid.raid_name} 时间： ${raid.raid_time.toLocaleString()} 报名人数： ${sign_ups.find(d => d.raid_name == raid.raid_name)?.count ?? 0}/${raid.max_members}`
+      `${raid.raid_server} - [${raid.group_name}] ${raid.raid_name} 时间： ${raid.raid_time.toLocaleString(locale_settings.current, date_locale_options)} 报名人数： ${sign_ups.find(d => d.raid_name == raid.raid_name)?.count ?? 0}/${raid.max_members}`
   );
 };
 
