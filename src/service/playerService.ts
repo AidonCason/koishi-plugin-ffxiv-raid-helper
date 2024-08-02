@@ -12,6 +12,7 @@ import {
   reSignup,
   selectSignupByRaidName
 } from '../dao/raidSignupDAO';
+import { getNoticeGroups, getNoticeUsers } from '../utils/raid';
 
 const onQuestion = async (
   config: Config,
@@ -98,8 +99,9 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     r.preitter_answer
   ]);
   output_pairs.push(['QQ(报名使用)', session.userId]);
-  if (config.notice_users.length > 0) {
-    config.notice_users.forEach(user => {
+  const notice_users = getNoticeUsers(config, raid_name);
+  if (notice_users.length > 0) {
+    notice_users.forEach(user => {
       setTimeout(() => {
         noticeToPrivage(
           ctx,
@@ -112,8 +114,9 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     });
   }
 
-  if (config.notice_groups.length > 0) {
-    config.notice_groups.forEach(group => {
+  const notice_groups = getNoticeGroups(config, raid_name);
+  if (notice_groups.length > 0) {
+    notice_groups.forEach(group => {
       setTimeout(() => {
         noticeToGroup(
           ctx,

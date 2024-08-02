@@ -1,16 +1,17 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
+import { getAdminGroups, getGroups } from './utils/raid';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function permissionsSetup(ctx: Context, config: Config) {
   // 拥有admin权限视为拥有leader权限
   ctx.permissions.inherit('raid-helper:leader', ['raid-helper:admin']);
 
-  ctx.permissions.provide('raid-helper:admin', async (name, session) => {
-    return session.onebot?.sender?.role === 'owner';
+  // 初步检测权限，考虑到私聊触发等，更详细的检测应该在指令内部进行
+  ctx.permissions.provide('raid-helper:admin', async (_, session) => {
+    return getAdminGroups(config, session.platform, session.userId).length > 0;
   });
 
-  ctx.permissions.provide('raid-helper:leader', async (name, session) => {
-    return (await session.getUser()).authority >= 4;
+  ctx.permissions.provide('raid-helper:leader', async (_, session) => {
+    return getGroups(config, session.platform, session.userId).length > 0;
   });
 }

@@ -2,15 +2,12 @@ import { Schema, Time } from 'koishi';
 
 export interface Config {
   message_interval: number;
-  notice_users: string[];
-  notice_groups: string[];
   server_name_map: { [key: string]: string[] };
   server_group_map: { [key: string]: string[] };
   group_config_maps: {
     group_name: string;
     platform: string;
-    admin: string;
-    leaders: { user_id: string; notice: boolean }[];
+    leaders: { user_id: string; notice: boolean; admin: boolean }[];
     groups: { group_id: string; notice: boolean }[];
     servers: { name: string; children: string[] }[];
     ignore_server: boolean;
@@ -23,8 +20,6 @@ export const Config: Schema<Config> = Schema.object({
     .min(0)
     .step(1000)
     .description('每轮消息发送间隔，单位毫秒'),
-  notice_users: Schema.array(Schema.string()),
-  notice_groups: Schema.array(Schema.string()),
   server_name_map: Schema.dict(
     Schema.array(Schema.string()).role('table')
   ).default({
@@ -68,7 +63,8 @@ export const Config: Schema<Config> = Schema.object({
       leaders: Schema.array(
         Schema.object({
           user_id: Schema.string().description('平台user_id'),
-          notice: Schema.boolean().description('接收消息通知')
+          notice: Schema.boolean().description('接收消息通知'),
+          admin: Schema.boolean().description('拥有admin权限')
         })
       ).description('指挥列表'),
       groups: Schema.array(
