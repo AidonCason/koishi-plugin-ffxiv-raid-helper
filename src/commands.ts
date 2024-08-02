@@ -3,7 +3,8 @@ import {
   openRaidHandler,
   checkNowHandler,
   checkDetailHandler,
-  exportHandler
+  exportHandler,
+  closeSignupHandler
 } from './service/managerService';
 import {
   applyHandler,
@@ -21,6 +22,14 @@ export function commandSetup(ctx: Context, config: Config) {
     })
     .action(async (argv, raid_name: string, raid_time: Date) => {
       return await openRaidHandler(ctx, config, argv, raid_name, raid_time);
+    });
+
+  ctx
+    .command('关闭报名', '提前关闭报名', {
+      permissions: ['raid-helper:leader']
+    })
+    .action(async argv => {
+      return await closeSignupHandler(ctx, config, argv);
     });
 
   ctx
