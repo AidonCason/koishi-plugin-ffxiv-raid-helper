@@ -180,11 +180,40 @@ const cancelSignupHandler = async (
   const sign_up = await checkSelfSignup(ctx, raid_name, session.userId);
   if (sign_up && sign_up.length > 0) {
     // 留存历史方便查询大聪明
-    const history_content = JSON.stringify([
+    const history_content = [
       ...(JSON.parse(sign_up[0].history_content || '[]') as []),
       JSON.parse(sign_up[0].content)
-    ]);
-    await cancelSignup(ctx, sign_up[0].id, history_content);
+    ];
+    await cancelSignup(ctx, sign_up[0].id, JSON.stringify(history_content));
+    const notice_users = getNoticeUsers(config, raid_name);
+    if (notice_users.length > 0) {
+      notice_users.forEach(user => {
+        setTimeout(() => {
+          noticeToPrivage(
+            ctx,
+            config,
+            session.bot,
+            user,
+            `${raid_name} ${session.userId}取消报名，当前第${history_content.length}次`
+          );
+        }, config.message_interval);
+      });
+    }
+
+    const notice_groups = getNoticeGroups(config, raid_name);
+    if (notice_groups.length > 0) {
+      notice_groups.forEach(group => {
+        setTimeout(() => {
+          noticeToGroup(
+            ctx,
+            config,
+            session.bot,
+            group,
+            `${raid_name} ${session.userId}取消报名，当前第${history_content.length}次`
+          );
+        }, config.message_interval);
+      });
+    }
     return '已取消报名申请';
   } else {
     return '未报名该团!';
