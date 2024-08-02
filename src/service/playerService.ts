@@ -13,7 +13,6 @@ import { getSheet } from '../constant/questionSheet';
 import {
   cancelSignup,
   createSignup,
-  reSignup,
   selectAllCanceledSignupByRaidNameAndUserId,
   selectAllValidSignupByRaidNameAndUserId,
   selectValidSignupByRaidName
@@ -62,6 +61,8 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     if (!answer || answer.preitter_answer == '否') {
       return '取消报名';
     }
+    await cancelSignup(ctx, self.id);
+    await session.sendQueued('已取消报名', config.message_interval);
   }
 
   const self_signups = await selectAllCanceledSignupByRaidNameAndUserId(
@@ -124,17 +125,12 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
   );
-  // create or update
-  if (!self) {
-    await createSignup(
-      ctx,
-      raid_name,
-      session.userId,
-      JSON.stringify(output_pairs)
-    );
-  } else {
-    await reSignup(ctx, self.id, JSON.stringify(output_pairs));
-  }
+  await createSignup(
+    ctx,
+    raid_name,
+    session.userId,
+    JSON.stringify(output_pairs)
+  );
   return '报名提交成功!请关注群公告里面的报名结果~';
 };
 

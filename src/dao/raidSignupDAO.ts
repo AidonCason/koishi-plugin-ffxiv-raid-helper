@@ -95,26 +95,6 @@ export const createSignup = async (
 };
 
 /**
- * 重新提交报名申请
- * @param id 主键
- * @param content 报名内容,json格式
- */
-export const reSignup = async (
-  ctx: Context,
-  id: number,
-  content: string
-): Promise<Driver.WriteResult> => {
-  return await ctx.database.upsert(raid_sign_up_table_name, () => [
-    {
-      id,
-      content,
-      is_canceled: false,
-      updated_at: new Date()
-    }
-  ]);
-};
-
-/**
  * 取消自己的报名申请
  * @param id 主键
  * @param history_content 取消报名留存
