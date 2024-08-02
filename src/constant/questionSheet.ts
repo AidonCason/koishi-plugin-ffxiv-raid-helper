@@ -118,5 +118,7 @@ export const getSheet = (server_name: string, config: Config) => {
       content: '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~'
     }
   ];
-  return questions.map(question => buildQuestion(question));
+  return questions.map(question => buildQuestion(question)) as ReadonlyArray<
+    ReturnType<typeof buildQuestion>
+  >;
 };
