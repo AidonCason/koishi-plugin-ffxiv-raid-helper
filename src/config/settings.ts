@@ -59,30 +59,37 @@ export const Config: Schema<Config> = Schema.object({
     })
     .collapse()
     .description('服务器区服的对应关系'),
-  server_group_map: Schema.dict(Schema.array(Schema.string()).role('table')),
+  server_group_map: Schema.dict(
+    Schema.array(Schema.string()).role('table')
+  ).deprecated(),
   group_config_map: Schema.dict(
     Schema.object({
-      platform: Schema.union(['onebot', 'sandbox']).description('机器人平台'),
-      admin: Schema.string().description('团长的user_id'),
+      platform: Schema.union(['onebot', 'sandbox'])
+        .description('机器人平台')
+        .default('onebot'),
+      admin: Schema.string().description('团长的user_id').required(),
       leaders: Schema.array(
         Schema.object({
-          user_id: Schema.string().description('平台user_id'),
-          notice: Schema.boolean().description('接收消息通知'),
-          admin: Schema.boolean().description('拥有admin权限')
+          user_id: Schema.string().description('平台user_id').required(),
+          notice: Schema.boolean().description('接收消息通知').default(true),
+          admin: Schema.boolean().description('拥有admin权限').default(false)
         })
       )
         .role('table')
         .description('指挥列表'),
       groups: Schema.array(
         Schema.object({
-          group_id: Schema.string().description('群组id'),
-          notice: Schema.boolean().description('接收消息通知')
+          group_id: Schema.string().description('群组id').required(),
+          notice: Schema.boolean().description('接收消息通知').default(true)
         })
       )
         .role('table')
         .description('相关的群列表'),
-      server: Schema.string().description('团所在服务器（大区）'),
-      ignore_server: Schema.boolean().description('跨区支持，开启后不关注区服')
-    })
+      server: Schema.string().description('团所在服务器（大区）').required(),
+      ignore_server: Schema.boolean()
+        .description('跨区支持，开启后不关注区服')
+        .default(false)
+    }),
+    Schema.string().pattern(/^\S+$/).description('团名').required()
   ).description('团配置')
 });
