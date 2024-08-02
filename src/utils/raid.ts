@@ -32,6 +32,37 @@ export const getGroups = (
   );
 };
 
+export const checkAdminPermission = (
+  config: Config,
+  platform: string,
+  user_id: string
+) => {
+  return (
+    Object.entries(config.group_config_map).findIndex(([, group]) => {
+      if (group.platform != platform) return false;
+      if (group.admin == user_id) return true;
+      if (group.leaders.findIndex(l => l.user_id == user_id && l.admin) >= 0)
+        return true;
+      return false;
+    }) >= 0
+  );
+};
+
+export const checkLeaderPermission = (
+  config: Config,
+  platform: string,
+  user_id: string
+) => {
+  return (
+    Object.entries(config.group_config_map).findIndex(([, group]) => {
+      if (group.platform != platform) return false;
+      if (group.admin == user_id) return true;
+      if (group.leaders.findIndex(l => l.user_id == user_id) >= 0) return true;
+      return false;
+    }) >= 0
+  );
+};
+
 /**
  * 获取团名
  */
