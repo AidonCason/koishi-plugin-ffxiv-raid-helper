@@ -1,4 +1,4 @@
-import { Context } from 'koishi';
+import { Context, Driver } from 'koishi';
 import { RaidListTable } from '../constant/db';
 import { raid_table_name } from '../constant/common';
 
@@ -65,4 +65,20 @@ export const createRaid = async (
     created_at: new Date(),
     updated_at: new Date()
   });
+};
+
+/**
+ * 关闭报名
+ */
+export const closeSignup = async (
+  ctx: Context,
+  id: number
+): Promise<Driver.WriteResult> => {
+  return await ctx.database.upsert(raid_table_name, () => [
+    {
+      id,
+      allow_sign_up: false,
+      updated_at: new Date()
+    }
+  ]);
 };

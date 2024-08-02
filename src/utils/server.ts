@@ -39,10 +39,7 @@ const selectRaid = async (ctx: Context, config: Config, session: Session) => {
   const raids = await getRaids(ctx);
   const raid_infos = await getRaidInfo(ctx, raids);
   if (!raid_infos) {
-    await session.sendQueued(
-      '未查询到当前有团，请在开团后报名',
-      config.message_interval
-    );
+    await session.sendQueued('未查询到当前有团', config.message_interval);
     return;
   }
   await session.sendQueued(

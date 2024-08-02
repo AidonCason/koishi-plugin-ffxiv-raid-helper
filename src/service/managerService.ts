@@ -8,7 +8,7 @@ import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as iconv from 'iconv-lite';
 import { getRaidInfo, getServerName, selectRaid } from '../utils/server';
-import { createRaid, selectByName } from '../dao/raidDAO';
+import { closeSignup, createRaid, selectByName } from '../dao/raidDAO';
 import { selectSignupByRaidName } from '../dao/raidSignupDAO';
 
 // 指挥开团
@@ -35,6 +35,17 @@ const openRaidHandler = async (
   if (!server_name) return;
   await createRaid(ctx, raid_name, 40, session.userId, raid_time, server_name);
   return '开团成功!';
+};
+
+const closeSignupHandler = async (ctx: Context, config: Config, argv: Argv) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
+
+  await closeSignup(ctx, raid.id);
+  return '关闭报名成功!';
 };
 
 const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
@@ -164,4 +175,10 @@ const exportHandler = async (
   }
 };
 
-export { openRaidHandler, checkNowHandler, checkDetailHandler, exportHandler };
+export {
+  openRaidHandler,
+  closeSignupHandler,
+  checkNowHandler,
+  checkDetailHandler,
+  exportHandler
+};
