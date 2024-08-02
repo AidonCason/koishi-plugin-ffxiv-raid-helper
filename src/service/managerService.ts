@@ -123,20 +123,11 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   })}`;
 };
 
-const exportHandler = async (
-  ctx: Context,
-  config: Config,
-  argv: Argv,
-  encoding: string
-) => {
+const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
   if (session.platform! in ['onebot', 'slack', 'sandbox']) {
     return '尚未支持的导出平台';
-  }
-
-  if (encoding && encoding! in ['utf8', 'gb2312']) {
-    return '不支持的编码';
   }
   const raid = await selectRaid(ctx, config, session);
   if (!raid) return;
@@ -160,7 +151,9 @@ const exportHandler = async (
             .join(',')
         )
         .join('\n');
-    const buffer = iconv.encode(title, encoding ?? 'utf8');
+    const buffer = iconv.encode(title, 'utf8', {
+      addBOM: true
+    });
 
     const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
     const file_name =

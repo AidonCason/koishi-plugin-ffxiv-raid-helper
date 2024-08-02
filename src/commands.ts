@@ -49,11 +49,11 @@ export function commandSetup(ctx: Context, config: Config) {
     });
 
   ctx
-    .command('导出报名状况 [encoding:string]', '导出单个团的报名详情列表', {
+    .command('导出报名状况', '导出单个团的报名详情列表', {
       permissions: ['raid-helper:leader']
     })
-    .action(async (argv, encoding: string) => {
-      return await exportHandler(ctx, config, argv, encoding);
+    .action(async argv => {
+      return await exportHandler(ctx, config, argv);
     });
 
   // 报名者操作，仅私聊
