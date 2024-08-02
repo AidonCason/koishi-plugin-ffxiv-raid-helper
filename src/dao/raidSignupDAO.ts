@@ -122,6 +122,7 @@ export const countByRaids = async (
 ): Promise<{ raid_name: string; count: number }[]> => {
   return await ctx.database
     .select(raid_sign_up_table_name)
+    .where({ is_canceled: false })
     .groupBy('raid_name', { count: row => $.count(row.id) })
     .where(row =>
       $.in(
