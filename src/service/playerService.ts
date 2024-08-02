@@ -1,8 +1,8 @@
-import { Context, Argv } from 'koishi';
+import { Context, Argv, Session } from 'koishi';
 import { Config } from '../config/settings';
 import { ErrorCode } from '../constant/common';
 import { noticeToGroup, noticeToPrivage } from './noticeService';
-import { selectRaid } from '../utils/server';
+import { getServerGroupMap, selectRaid } from '../utils/server';
 import {
   Answer,
   buildQuestion,
@@ -21,9 +21,43 @@ import { getNoticeGroups, getNoticeUsers } from '../utils/raid';
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion } from '../utils/question';
 
+const checkUserIsInGroup = async (session: Session, config: Config) => {
+  if (!session.isDirect) return true;
+  if (session.platform != 'onebot') return true;
+
+  const getUserSevers = async (userId: string) => {
+    const userSevers = new Set<string>();
+    for (const [server_name, group_ids] of getServerGroupMap(config)) {
+      for (const group_id of group_ids) {
+        const groupList = await session.onebot.getGroupList();
+        if (!groupList.map(g => g.group_id.toString()).includes(group_id)) {
+          logger.warn(`group ${group_id} not exist`);
+          continue;
+        }
+        const member_list = await session.onebot.getGroupMemberList(group_id);
+        if (member_list.map(m => m.user_id.toString()).includes(userId)) {
+          userSevers.add(server_name);
+        }
+      }
+    }
+    return userSevers;
+  };
+
+  const userSevers = await getUserSevers(session.userId);
+
+  if (userSevers.size == 0) {
+    logger.warn(`user ${session.userId} not in any server`);
+    return false;
+  }
+  return true;
+};
+
 const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
+  if (!(await checkUserIsInGroup(session, config))) {
+    return '请先加群再报名';
+  }
   const raid = await selectRaid(ctx, config, session);
   if (!raid) return;
   if (!raid.allow_sign_up) {
