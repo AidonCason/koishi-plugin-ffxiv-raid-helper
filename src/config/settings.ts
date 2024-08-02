@@ -22,7 +22,10 @@ export const Config: Schema<Config> = Schema.object({
     .step(1000)
     .description('每轮消息发送间隔，单位毫秒'),
   server_name_map: Schema.dict(
-    Schema.array(Schema.string()).role('table').description('小区的名字')
+    Schema.array(Schema.string().pattern(/^\S+$/))
+      .role('table')
+      .description('小区的名字'),
+    Schema.string().pattern(/^\S+$/).description('大区名').required()
   )
     .default({
       陆行鸟: [
