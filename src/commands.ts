@@ -56,20 +56,32 @@ export function commandSetup(ctx: Context, config: Config) {
       return await exportHandler(ctx, config, argv, encoding);
     });
 
-  // 报名者操作
-  ctx.command('报名').action(async argv => {
-    return await applyHandler(ctx, config, argv);
-  });
+  // 报名者操作，仅私聊
+  ctx
+    .intersect(session => session.isDirect)
+    .command('报名')
+    .action(async argv => {
+      return await applyHandler(ctx, config, argv);
+    });
 
-  ctx.command('查看报名申请').action(async argv => {
-    return await checkSelfHandler(ctx, config, argv);
-  });
+  ctx
+    .intersect(session => session.isDirect)
+    .command('查看报名申请')
+    .action(async argv => {
+      return await checkSelfHandler(ctx, config, argv);
+    });
 
-  ctx.command('取消报名').action(async argv => {
-    return await cancelSignupHandler(ctx, config, argv);
-  });
+  ctx
+    .intersect(session => session.isDirect)
+    .command('取消报名')
+    .action(async argv => {
+      return await cancelSignupHandler(ctx, config, argv);
+    });
 
-  ctx.command('联系指挥').action(async argv => {
-    return await contactLeaderHandler(ctx, config, argv);
-  });
+  ctx
+    .intersect(session => session.isDirect)
+    .command('联系指挥')
+    .action(async argv => {
+      return await contactLeaderHandler(ctx, config, argv);
+    });
 }
