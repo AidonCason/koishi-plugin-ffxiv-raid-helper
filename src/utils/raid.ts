@@ -46,22 +46,6 @@ export const getGroupNameByRaidName = async (
   return raids[0].group_name;
 };
 
-export const getGroupNameByGroupId = (config: Config, group_id: string) => {
-  return Object.entries(config.group_config_map)
-    .filter(
-      ([, group]) => group.groups.findIndex(g => g.group_id == group_id) > 0
-    )
-    .map(([group_name]) => group_name);
-};
-
-export const getGroupNameByLeaderId = (config: Config, user_id: string) => {
-  return Object.entries(config.group_config_map)
-    .filter(
-      ([, group]) => group.leaders.findIndex(l => l.user_id == user_id) > 0
-    )
-    .map(([group_name]) => group_name);
-};
-
 /**
  * 获取需要通知的人
  */

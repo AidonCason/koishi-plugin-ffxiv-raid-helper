@@ -7,10 +7,9 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as iconv from 'iconv-lite';
-import { getRaidInfo, getServerName, selectRaid } from '../utils/server';
+import { getRaidInfo, selectRaid } from '../utils/server';
 import { closeSignup, createRaid, selectByName } from '../dao/raidDAO';
 import { selectValidSignupByRaidName } from '../dao/raidSignupDAO';
-import { getGroupNameByGroupId, getGroupNameByLeaderId } from '../utils/raid';
 import { buildQuestion, Question, QuestionType } from '../constant/question';
 import { askOneQuestion } from '../utils/question';
 
@@ -33,34 +32,42 @@ const openRaidHandler = async (
   if (one && one.length > 0) {
     return '团已经存在！';
   }
-  const server_name = await getServerName(ctx, config, session);
-  if (!server_name) return;
-  let group_names = [];
+  const group_name_server_name_map = new Map<string, string>();
   if (session.guildId) {
-    group_names = group_names.concat(
-      getGroupNameByGroupId(config, session.guildId)
-    );
+    Object.entries(config.group_config_map).map(([group_name, group]) => {
+      if (group.groups.findIndex(g => g.group_id == session.guildId) > 0) {
+        group_name_server_name_map.set(group_name, group.server);
+      }
+    });
   }
-  if (group_names.length == 0) {
-    group_names = getGroupNameByLeaderId(config, session.userId);
+  if (group_name_server_name_map.size == 0) {
+    Object.entries(config.group_config_map).map(([group_name, group]) => {
+      if (group.leaders.findIndex(l => l.user_id == session.userId) > 0) {
+        group_name_server_name_map.set(group_name, group.server);
+      }
+    });
   }
-  if (group_names.length == 0) {
+  let group_name = group_name_server_name_map.keys().next().value;
+  let server_name = group_name_server_name_map.values().next().value;
+  if (group_name_server_name_map.size == 0) {
     return '请在指定的群组内开团';
   }
-  if (group_names.length > 1) {
+  if (group_name_server_name_map.size > 1) {
     const group_choice_question: Question = buildQuestion({
       label: 'group_name',
       type: QuestionType.SignleChoice,
       name: '选择团',
       content: '请选择一个团内开团',
-      answer_range_desc: group_names
+      answer_range_desc: Array.from(group_name_server_name_map.keys())
     });
     const answer = await askOneQuestion(config, session, group_choice_question);
-    group_names = [answer.preitter_answer];
+    if (!answer) return;
+    group_name = answer.preitter_answer;
+    server_name = group_name_server_name_map.get(group_name);
   }
   await createRaid(
     ctx,
-    group_names[0],
+    group_name,
     raid_name,
     40,
     session.userId,
@@ -175,7 +182,7 @@ const exportHandler = async (
     if (session.platform && session.platform == 'onebot') {
       const file_path = pathToFileURL(path.resolve(root, file_name)).href;
       logger.debug('to send:{}', file_path);
-      if (session.channelId.startsWith('private:')) {
+      if (session.isDirect) {
         await session.onebot.sendPrivateMsg(session.userId, [
           {
             type: 'file',

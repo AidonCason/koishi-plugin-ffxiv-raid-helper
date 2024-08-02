@@ -16,9 +16,9 @@ const noticeToPrivage = async (
     return '该平台不支持私信';
   }
 
-  const one = await (
-    await bot.getFriendList()
-  ).data.find(friend => friend.id == user_id);
+  const one = (await bot.getFriendList()).data.find(
+    friend => friend.id == user_id
+  );
   if (!one) {
     logger.warn(`要推送的用户${user_id}不是bot:${bot.selfId}的好友`);
     return;
@@ -37,7 +37,7 @@ const noticeToGroup = async (
     return '该平台不支持群聊推送';
   }
 
-  const one = await (await bot.getGuildList()).data.find(g => g.id == group_id);
+  const one = (await bot.getGuildList()).data.find(g => g.id == group_id);
   if (!one) {
     logger.warn(`要推送的群组${group_id}不是bot:${bot.selfId}的群组`);
     return;

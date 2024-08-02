@@ -3,20 +3,8 @@ import { RaidListTable } from '../constant/db';
 import { Config } from '../config/settings';
 import { selectByDateAfter } from '../dao/raidDAO';
 import { countByRaids } from '../dao/raidSignupDAO';
-
-const getServerName = async (
-  ctx: Context,
-  config: Config,
-  session: Session
-) => {
-  if (!session.guild) return;
-  for (const [server_name, groups] of getServerGroupMap(config)) {
-    if (groups.includes(session.guildId)) {
-      return server_name;
-    }
-  }
-  await session.sendQueued('请在指定的群组内开团', config.message_interval);
-};
+import { buildQuestion, QuestionType } from '../constant/question';
+import { askOneQuestion } from './question';
 
 export const getServerGroupMap = (config: Config) => {
   return new Map(
@@ -27,12 +15,12 @@ export const getServerGroupMap = (config: Config) => {
   );
 };
 
-const getRaids = async (ctx: Context) => {
+export const getRaids = async (ctx: Context) => {
   return await selectByDateAfter(ctx, new Date());
 };
 
 // 获取展示的团信息
-const getRaidInfo = async (ctx: Context, raids?: RaidListTable[]) => {
+export const getRaidInfo = async (ctx: Context, raids?: RaidListTable[]) => {
   if (!raids) raids = await getRaids(ctx);
   if (!raids) return;
   const sign_ups = await countByRaids(ctx, raids);
@@ -42,24 +30,25 @@ const getRaidInfo = async (ctx: Context, raids?: RaidListTable[]) => {
   );
 };
 
-const selectRaid = async (ctx: Context, config: Config, session: Session) => {
+export const selectRaid = async (
+  ctx: Context,
+  config: Config,
+  session: Session
+) => {
   const raids = await getRaids(ctx);
   const raid_infos = await getRaidInfo(ctx, raids);
   if (!raid_infos) {
     await session.sendQueued('未查询到当前有团', config.message_interval);
     return;
   }
-  await session.sendQueued(
-    '请输入编号选择要查看的团，当前有如下团:\n' +
-      raid_infos.map((e, idx) => `${idx + 1}. ${e}`).join('\n'),
-    config.message_interval
-  );
-  const choice = parseInt(await session.prompt(), 10) || -1;
-  if (!raid_infos[choice - 1]) {
-    await session.sendQueued('团号错误', config.message_interval);
-    return;
-  }
-  return raids[choice - 1];
+  const select_raid_question = buildQuestion({
+    label: 'select_raid',
+    type: QuestionType.SignleChoice,
+    name: '选择团',
+    content: '请输入编号选择要查看的团',
+    answer_range_desc: raid_infos
+  });
+  const answer = await askOneQuestion(config, session, select_raid_question);
+  if (!answer) return;
+  return raids[parseInt(answer.answer) - 1];
 };
-
-export { getServerName, getRaids, getRaidInfo, selectRaid };
