@@ -6,6 +6,15 @@ export interface Config {
   notice_groups: string[];
   server_name_map: { [key: string]: string[] };
   server_group_map: { [key: string]: string[] };
+  group_config_maps: {
+    group_name: string;
+    platform: string;
+    admin: string;
+    leaders: { user_id: string; notice: boolean }[];
+    groups: { group_id: string; notice: boolean }[];
+    servers: { name: string; children: string[] }[];
+    ignore_server: boolean;
+  }[];
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -50,5 +59,31 @@ export const Config: Schema<Config> = Schema.object({
     ],
     豆豆柴: ['水晶塔', '银泪湖', '太阳海岸', '伊修加德', '红茶川']
   }),
-  server_group_map: Schema.dict(Schema.array(Schema.string()).role('table'))
+  server_group_map: Schema.dict(Schema.array(Schema.string()).role('table')),
+  group_config_maps: Schema.array(
+    Schema.object({
+      group_name: Schema.string().description('团名'),
+      platform: Schema.string().description('机器人所在的platform'),
+      admin: Schema.string().description('团长的user_id'),
+      leaders: Schema.array(
+        Schema.object({
+          user_id: Schema.string().description('平台user_id'),
+          notice: Schema.boolean().description('接收消息通知')
+        })
+      ).description('指挥列表'),
+      groups: Schema.array(
+        Schema.object({
+          group_id: Schema.string().description('群组id'),
+          notice: Schema.boolean().description('接收消息通知')
+        })
+      ).description('相关的群列表'),
+      servers: Schema.array(
+        Schema.object({
+          name: Schema.string().description('服务器名，一般是大区'),
+          children: Schema.array(Schema.string()).description('小区服务器名')
+        })
+      ).description('相关的区服列表'),
+      ignore_server: Schema.boolean().description('跨区支持，开启后不关注区服')
+    })
+  )
 });
