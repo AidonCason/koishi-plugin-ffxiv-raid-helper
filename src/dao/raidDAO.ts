@@ -55,8 +55,8 @@ export const createRaid = async (
   user_id: string,
   raid_time: Date,
   server_name: string
-): Promise<RaidListTable[]> => {
-  return await ctx.database.get(raid_table_name, {
+): Promise<RaidListTable> => {
+  return await ctx.database.create(raid_table_name, {
     group_name,
     raid_name,
     max_members,
