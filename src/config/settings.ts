@@ -3,7 +3,6 @@ import { Schema, Time } from 'koishi';
 export interface Config {
   message_interval: number;
   server_name_map: { [key: string]: string[] };
-  server_group_map: { [key: string]: string[] };
   group_config_map: {
     [key: string]: {
       platform: 'onebot' | 'sandbox';
@@ -59,9 +58,6 @@ export const Config: Schema<Config> = Schema.object({
     })
     .collapse()
     .description('服务器区服的对应关系'),
-  server_group_map: Schema.dict(
-    Schema.array(Schema.string()).role('table')
-  ).deprecated(),
   group_config_map: Schema.dict(
     Schema.object({
       platform: Schema.union(['onebot', 'sandbox'])
@@ -89,7 +85,7 @@ export const Config: Schema<Config> = Schema.object({
       ignore_server: Schema.boolean()
         .description('跨区支持，开启后不关注区服')
         .default(false)
-    }),
+    }).collapse(),
     Schema.string().pattern(/^\S+$/).description('团名').required()
   ).description('团配置')
 });

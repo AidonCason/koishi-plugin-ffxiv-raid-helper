@@ -1,14 +1,14 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
 import logger from './utils/logger';
+import { getServerGroupMap } from './utils/server';
 
 export function middlewareSetup(ctx: Context, config: Config) {
   // 不在配置文件中的群组不处理
   ctx.middleware((session, next) => {
     if (!session.guildId) return next();
-    if (!config.server_group_map) return next();
 
-    for (const [, group_ids] of Object.entries(config.server_group_map)) {
+    for (const [, group_ids] of getServerGroupMap(config)) {
       if (group_ids.includes(session.guildId)) {
         return next();
       }
@@ -23,9 +23,7 @@ export function middlewareSetup(ctx: Context, config: Config) {
 
     const getUserSevers = async (userId: string) => {
       const userSevers = new Set<string>();
-      for (const [server_name, group_ids] of Object.entries(
-        config.server_group_map
-      )) {
+      for (const [server_name, group_ids] of getServerGroupMap(config)) {
         for (const group_id of group_ids) {
           const groupList = await session.onebot.getGroupList();
           if (!groupList.map(g => g.group_id.toString()).includes(group_id)) {

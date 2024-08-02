@@ -10,14 +10,21 @@ const getServerName = async (
   session: Session
 ) => {
   if (!session.guild) return;
-  for (const [server_name, server_ids] of Object.entries(
-    config.server_group_map
-  )) {
-    if (server_ids.includes(session.guildId)) {
+  for (const [server_name, groups] of getServerGroupMap(config)) {
+    if (groups.includes(session.guildId)) {
       return server_name;
     }
   }
   await session.sendQueued('请在指定的群组内开团', config.message_interval);
+};
+
+export const getServerGroupMap = (config: Config) => {
+  return new Map(
+    Object.entries(config.group_config_map).map(([k, v]) => [
+      k,
+      v.groups.map(g => g.group_id)
+    ])
+  );
 };
 
 const getRaids = async (ctx: Context) => {
