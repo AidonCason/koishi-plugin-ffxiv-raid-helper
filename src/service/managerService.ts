@@ -114,24 +114,13 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const sign_up = await selectValidSignupByRaidName(ctx, raid_name);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
-  } else {
-    return (
-      '当前报名人数为: ' +
-      sign_up.length +
-      '\n' +
-      sign_up
-        .map(
-          (s, idx) =>
-            '序号: ' +
-            (idx + 1) +
-            '\n' +
-            JSON.parse(s.content)
-              .map(j => j[0] + ': ' + j[1])
-              .join('\n')
-        )
-        .join('\n\n')
-    );
   }
+  return `当前报名人数为: ${sign_up.length}\n${sign_up.map((s, idx) => {
+    const content = JSON.parse(s.content);
+    const user_server = content.find(p => p[0] == '所在服务器')[1];
+    const user_name = content.find(p => p[0] == '角色姓名')[1];
+    return `序号: ${idx + 1} ${user_server} - ${user_name}`;
+  })}`;
 };
 
 const exportHandler = async (
