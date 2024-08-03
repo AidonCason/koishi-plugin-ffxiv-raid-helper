@@ -6,30 +6,33 @@ import { ErrorCode } from '../constant/common';
 export const onQuestion = async (
   config: Config,
   session: Session,
-  problem: Question,
+  question: Question,
   results: Map<string, Answer>,
   max_retry_time: number = 3
-) => {
+): Promise<ErrorCode> => {
   if (max_retry_time <= 0) {
     return ErrorCode.MaxRetry;
   }
 
+  if (question.skip(results)) {
+    return ErrorCode.OK;
+  }
   await session.sendQueued(
-    problem.construct_content(results),
+    question.construct_content(results),
     config.message_interval
   );
   const res_accept = await session.prompt();
   if (!res_accept) return ErrorCode.Timeout;
 
-  if (!problem.accept_answer(res_accept, results)) {
+  if (!question.accept_answer(res_accept, results)) {
     await session.sendQueued('输入不合法，请重新输入', config.message_interval);
-    return onQuestion(config, session, problem, results, max_retry_time - 1);
+    return onQuestion(config, session, question, results, max_retry_time - 1);
   }
-  results.set(problem.label, {
-    label: problem.label,
-    name: problem.name,
+  results.set(question.label, {
+    label: question.label,
+    name: question.name,
     answer: res_accept,
-    preitter_answer: problem.construct_preitter_answer(res_accept, results)
+    preitter_answer: question.construct_preitter_answer(res_accept, results)
   });
   return ErrorCode.OK;
 };
@@ -39,7 +42,7 @@ export const askOneQuestion = async (
   session: Session,
   problem: Question,
   max_retry_time: number = 3
-) => {
+): Promise<Answer | undefined> => {
   const results = new Map<string, Answer>();
   const code = await onQuestion(
     config,
