@@ -48,22 +48,18 @@ const noticeToGroup = async (
 };
 
 const noticeOneDayBefore = async (ctx: Context, config: Config) => {
-  const now = new Date();
-  const begin_time = new Date(now);
-  begin_time.setDate(now.getDate() + 1);
-  const end_time = new Date(now);
-  end_time.setDate(now.getDate() + 1);
-  end_time.setMinutes(now.getMinutes() + 5);
+  const begin_time = new Date();
+  begin_time.setDate(begin_time.getDate() + 1);
+  const end_time = new Date(begin_time);
+  end_time.setMinutes(end_time.getMinutes() + 5);
   return await noticeBefore(ctx, config, begin_time, end_time);
 };
 
 const noticeTwoHoursBefore = async (ctx: Context, config: Config) => {
-  const now = new Date();
-  const begin_time = new Date(now);
-  begin_time.setHours(now.getHours() + 1);
-  const end_time = new Date(now);
-  end_time.setHours(now.getHours() + 1);
-  end_time.setMinutes(now.getMinutes() + 5);
+  const begin_time = new Date();
+  begin_time.setHours(begin_time.getHours() + 2);
+  const end_time = new Date(begin_time);
+  end_time.setMinutes(end_time.getMinutes() + 5);
   return await noticeBefore(ctx, config, begin_time, end_time);
 };
 
