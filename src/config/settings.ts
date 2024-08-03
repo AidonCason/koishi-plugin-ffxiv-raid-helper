@@ -19,8 +19,8 @@ export const Config: Schema<Config> = Schema.intersect([
   Schema.object({
     message_interval: Schema.number()
       .default(3 * Time.second)
-      .min(0)
-      .step(1000)
+      .min(0 * Time.second)
+      .step(Time.second)
       .description('每轮消息发送间隔，单位毫秒')
   }).description('基础设置'),
   Schema.object({
