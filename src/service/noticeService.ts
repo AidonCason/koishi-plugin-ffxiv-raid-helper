@@ -4,7 +4,7 @@ import logger from '../utils/logger';
 import { locale_settings } from '../utils/locale';
 import { selectByDateBetween } from '../dao/raidDAO';
 import { selectValidSignupByRaidName } from '../dao/raidSignupDAO';
-import { getNoticeGroups } from '../utils/raid';
+import { getNoticeGroups, getNoticeUsers } from '../utils/raid';
 
 // TODO: 如果后面风控高的话要把好友列表和群组列表缓存
 const noticeToPrivage = async (
@@ -87,6 +87,7 @@ const noticeBefore = async (
     logger.info(msg);
 
     try {
+      // TODO: 这里应该只推送给大群吧，小群的话就不推送了
       const groups = await getNoticeGroups(ctx, config, e.raid_name);
       groups.forEach(g => {
         noticeToGroup(ctx, config, bot, g, msg);
@@ -106,9 +107,35 @@ const noticeBefore = async (
   });
 };
 
+const sendNotice = async (
+  ctx: Context,
+  config: Config,
+  bot: Bot,
+  message: string
+) => {
+  const notice_users = await getNoticeUsers(ctx, config, message);
+  if (notice_users.length > 0) {
+    notice_users.forEach(user => {
+      setTimeout(() => {
+        noticeToPrivage(ctx, config, bot, user, message);
+      }, config.message_interval);
+    });
+  }
+
+  const notice_groups = await getNoticeGroups(ctx, config, message);
+  if (notice_groups.length > 0) {
+    notice_groups.forEach(group => {
+      setTimeout(() => {
+        noticeToGroup(ctx, config, bot, group, message);
+      }, config.message_interval);
+    });
+  }
+};
+
 export {
   noticeToPrivage,
   noticeToGroup,
   noticeOneDayBefore,
-  noticeTwoHoursBefore
+  noticeTwoHoursBefore,
+  sendNotice
 };

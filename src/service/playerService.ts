@@ -1,7 +1,7 @@
 import { Context, Argv, Session } from 'koishi';
 import { Config } from '../config/settings';
 import { ErrorCode } from '../constant/common';
-import { noticeToGroup, noticeToPrivage } from './noticeService';
+import { sendNotice } from './noticeService';
 import { getServerGroupMap, selectRaid } from '../utils/server';
 import {
   Answer,
@@ -17,7 +17,6 @@ import {
   selectAllValidSignupByRaidNameAndUserId,
   selectValidSignupByRaidName
 } from '../dao/raidSignupDAO';
-import { getNoticeGroups, getNoticeUsers } from '../utils/raid';
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion } from '../utils/question';
 
@@ -126,36 +125,12 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     r.preitter_answer
   ]);
   output_pairs.push(['QQ(报名使用)', session.userId]);
-  const notice_users = await getNoticeUsers(ctx, config, raid_name);
-  if (notice_users.length > 0) {
-    notice_users.forEach(user => {
-      setTimeout(() => {
-        noticeToPrivage(
-          ctx,
-          config,
-          session.bot,
-          user,
-          `${raid_name} 收到一份新的报名表`
-        );
-      }, config.message_interval);
-    });
-  }
-
-  const notice_groups = await getNoticeGroups(ctx, config, raid_name);
-  if (notice_groups.length > 0) {
-    notice_groups.forEach(group => {
-      setTimeout(() => {
-        noticeToGroup(
-          ctx,
-          config,
-          session.bot,
-          group,
-          `${raid_name} 收到一份新的报名表`
-        );
-      }, config.message_interval);
-    });
-  }
-
+  await sendNotice(
+    ctx,
+    config,
+    session.bot,
+    `${raid_name} 收到来自${session.userId}的一份新的报名表`
+  );
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
   );
@@ -214,35 +189,12 @@ const cancelSignupHandler = async (
   for (const sign_up of sign_ups) {
     await cancelSignup(ctx, sign_up.id);
   }
-  const notice_users = await getNoticeUsers(ctx, config, raid_name);
-  if (notice_users.length > 0) {
-    notice_users.forEach(user => {
-      setTimeout(() => {
-        noticeToPrivage(
-          ctx,
-          config,
-          session.bot,
-          user,
-          `${raid_name} ${session.userId}取消报名`
-        );
-      }, config.message_interval);
-    });
-  }
-
-  const notice_groups = await getNoticeGroups(ctx, config, raid_name);
-  if (notice_groups.length > 0) {
-    notice_groups.forEach(group => {
-      setTimeout(() => {
-        noticeToGroup(
-          ctx,
-          config,
-          session.bot,
-          group,
-          `${raid_name} ${session.userId}取消报名`
-        );
-      }, config.message_interval);
-    });
-  }
+  await sendNotice(
+    ctx,
+    config,
+    session.bot,
+    `${raid_name} ${session.userId}取消报名`
+  );
   return '已取消报名申请';
 };
 
