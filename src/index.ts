@@ -8,7 +8,6 @@ import {
 } from './service/noticeService';
 import { commandSetup } from './commands';
 import { permissionsSetup } from './permissions';
-import { middlewareSetup } from './middleware';
 
 // 插件名
 export const name = 'ffxiv-raid-helper';
@@ -30,7 +29,6 @@ export function apply(ctx: Context, config: Config) {
     noticeTwoHoursBefore(ctx, config);
   });
 
-  middlewareSetup(ctx, config);
   permissionsSetup(ctx, config);
   commandSetup(ctx, config);
 }
