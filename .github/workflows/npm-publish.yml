@@ -1,5 +1,5 @@
 name: Build And Pubish
-run-name:  Build And Pubish [${{ inputs.raw_image }}] by @${{ github.actor }}
+run-name:  Build And Pubish by @${{ github.actor }}
 
 on:
   workflow_dispatch:
