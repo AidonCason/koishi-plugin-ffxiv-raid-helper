@@ -55,7 +55,7 @@ jobs:
         pwd
         ls
         cat package.json
-        yarn yakumo publish
+        yarn yakumo build
 
     - name: Set npm token
       shell: bash
