@@ -24,8 +24,6 @@ jobs:
       - name: Install
         shell: bash
         run: |
-          pwd
-          ls
           yarn
           yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
           npm install
@@ -41,8 +39,6 @@ jobs:
             build:
               - tsc
               - esbuild" > yakumo.yml
-          pwd
-          ls
           cat package.json
           yarn yakumo build
 
