@@ -36,7 +36,7 @@ jobs:
         ls
         yarn
         yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
-        yarn add koishi koishi-plugin-cron iconv-lite
+        yarn add koishi koishi-plugin-cron iconv-lite koishi-plugin-adapter-onebot
 
     - name: Build
       shell: bash
