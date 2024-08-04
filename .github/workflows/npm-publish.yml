@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
-      - with:
+        with:
           node-version: ${{ inputs.node-version }}
   build-and-publish:
     runs-on: ubuntu-latest
