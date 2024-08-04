@@ -33,8 +33,7 @@ jobs:
           ls
           yarn
           yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
-          yarn global add install-peerdeps
-          install-peerdeps --yarn
+          npm install
 
       - name: Build
         shell: bash
