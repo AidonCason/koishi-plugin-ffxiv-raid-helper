@@ -30,6 +30,8 @@ jobs:
     - name: Install
       shell: bash
       run: |
+        pwd
+        ls
         yarn
         yarn add yakumo typescript yakumo-esbuild yakumo-esbuild-yaml yakumo-publish yakumo-publish-sync yakumo-mocha mocha esbuild yakumo-tsc yml-register esbuild-register -D
 
@@ -48,6 +50,7 @@ jobs:
           build:
             - tsc
             - esbuild" > yakumo.yml
+        pwd
         ls
         cat package.json
         yarn yakumo publish
