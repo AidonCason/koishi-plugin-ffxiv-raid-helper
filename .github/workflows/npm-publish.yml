@@ -33,8 +33,8 @@ jobs:
           ls
           yarn
           yarn add install-peers -D
-          yarn install-peers
           yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
+          yarn install
 
       - name: Build
         shell: bash
