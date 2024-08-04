@@ -32,7 +32,7 @@ jobs:
           pwd
           ls
           yarn
-          yarn add install-peers -D
+          yarn add --dev --ignore-scripts install-peers
           yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
           yarn install
 
