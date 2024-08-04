@@ -4,9 +4,6 @@ run-name: Build And Pubish by @${{ github.actor }}
 on:
   workflow_dispatch:
     inputs:
-      token:
-        description: 'npm token used to publish'
-        required: true
       node-version:
         default: '20'
         required: false
@@ -56,7 +53,7 @@ jobs:
 
       - name: Set npm token
         shell: bash
-        run: echo "//registry.npmjs.org/:_authToken=${{ inputs.token }}" > ~/.npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_KOISHI }}" > ~/.npmrc
 
       - name: Publish package
         shell: bash
