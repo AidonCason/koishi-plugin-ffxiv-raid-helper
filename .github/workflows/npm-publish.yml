@@ -47,6 +47,7 @@ jobs:
           build:
             - tsc
             - esbuild" > yakumo.yml
+        cd ~/koishi-plugin-ffxiv-raid-helper
         ls
         yarn yakumo publish
 
