@@ -30,6 +30,7 @@ jobs:
     - name: Install
       shell: bash
       run: |
+        cd ..
         pwd
         ls
         yarn
