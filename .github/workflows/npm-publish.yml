@@ -1,0 +1,56 @@
+name: Build And Pubish
+run-name:  Build And Pubish [${{ inputs.raw_image }}] by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      token:
+        description: 'npm token used to publish'
+        required: true
+      node-version:
+        default: '20'
+        required: false
+        description: Node.js version to use
+      otp-code:
+        default: ''
+        required: false
+        description: '2FA Authenticate code'
+
+jobs:
+  set-up-node:
+    uses: actions/setup-node@v4.0.3
+    with:
+      node-version: ${{ inputs.node-version }}
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install
+      shell: bash
+      run: |
+        yarn
+        yarn add yakumo typescript yakumo-esbuild yakumo-esbuild-yaml yakumo-publish yakumo-publish-sync yakumo-mocha mocha esbuild yakumo-tsc yml-register esbuild-register -D
+
+    - name: Build
+      shell: bash
+      run: |
+        echo "require:
+          - esbuild-register
+          - yakumo-esbuild
+          - yakumo-esbuild-yaml
+          - yakumo-mocha
+          - yakumo-publish
+          - yakumo-publish-sync
+          - yakumo-tsc
+        pipeline:
+          build:
+            - tsc
+            - esbuild" > yakumo.yml
+        yarn yakumo publish
+
+    - name: Set npm token
+      shell: bash
+      run: echo "//registry.npmjs.org/:_authToken=${{ inputs.token }}" > ~/.npmrc
+
+    - name: Publish package
+      shell: bash
+      run: yarn yakumo publish --otp=${{ inputs.otp-code }}
