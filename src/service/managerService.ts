@@ -203,10 +203,42 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   }
 };
 
+const pushMessageToAllSignup = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  const raid = await selectRaid(ctx, config, session);
+  if (!raid) return;
+  const raid_name = raid.raid_name;
+  const sign_up = await selectValidSignupByRaidName(ctx, raid_name);
+  if (!sign_up || sign_up.length == 0) {
+    return '当前报名人数为: 0';
+  } else {
+    await session.sendQueued('请输入要推送的消息', config.message_interval);
+    await session.prompt(async session => {
+      sign_up.forEach(async s => {
+        const user_id = s.user_id;
+        if (session.platform == 'onebot') {
+          const message = session.onebot.message;
+          await session.onebot.sendPrivateMsg(user_id, message);
+        } else {
+          const message = argv.args.join(' ');
+          await session.sendQueued(message, config.message_interval);
+        }
+      });
+    });
+    return '推送消息成功';
+  }
+};
+
 export {
   openRaidHandler,
   closeSignupHandler,
   checkNowHandler,
   checkDetailHandler,
-  exportHandler
+  exportHandler,
+  pushMessageToAllSignup
 };

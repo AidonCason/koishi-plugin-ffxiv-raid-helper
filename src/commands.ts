@@ -4,7 +4,8 @@ import {
   checkNowHandler,
   checkDetailHandler,
   exportHandler,
-  closeSignupHandler
+  closeSignupHandler,
+  pushMessageToAllSignup
 } from './service/managerService';
 import {
   applyHandler,
@@ -54,6 +55,14 @@ export function commandSetup(ctx: Context, config: Config) {
     })
     .action(async argv => {
       return await exportHandler(ctx, config, argv);
+    });
+
+  ctx
+    .command('推送消息到所有报名者', {
+      permissions: ['raid-helper:leader']
+    })
+    .action(async argv => {
+      return await pushMessageToAllSignup(ctx, config, argv);
     });
 
   // 报名者操作，仅私聊
