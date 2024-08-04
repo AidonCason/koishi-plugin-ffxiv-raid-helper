@@ -3,15 +3,9 @@ run-name: Build And Pubish by @${{ github.actor }}
 
 on:
   workflow_dispatch:
-    inputs:
-      node-version:
-        default: '20'
-        required: false
-        description: Node.js version to use
-      otp-code:
-        default: ''
-        required: false
-        description: '2FA Authenticate code'
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   set-up-node:
@@ -19,7 +13,8 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ inputs.node-version }}
+          node-version: 20
+
   build-and-publish:
     runs-on: ubuntu-latest
     needs: set-up-node
@@ -57,4 +52,4 @@ jobs:
 
       - name: Publish package
         shell: bash
-        run: yarn yakumo publish --otp=${{ inputs.otp-code }}
+        run: yarn yakumo publish
