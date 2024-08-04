@@ -47,6 +47,7 @@ jobs:
           build:
             - tsc
             - esbuild" > yakumo.yml
+        ls
         yarn yakumo publish
 
     - name: Set npm token
