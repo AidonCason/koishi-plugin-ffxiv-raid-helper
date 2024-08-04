@@ -27,10 +27,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: set-up-node
     steps:
+    - name: check-out
+      uses: actions/checkout@v4
     - name: Install
       shell: bash
       run: |
-        cd ..
         pwd
         ls
         yarn
