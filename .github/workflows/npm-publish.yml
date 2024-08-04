@@ -27,37 +27,37 @@ jobs:
     runs-on: ubuntu-latest
     needs: set-up-node
     steps:
-    - name: check-out
-      uses: actions/checkout@v4
-    - name: Install
-      shell: bash
-      run: |
-        pwd
-        ls
-        yarn
-        yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
-        yarn add koishi koishi-plugin-cron iconv-lite koishi-plugin-adapter-onebot
+      - name: check-out
+        uses: actions/checkout@v4
+      - name: Install
+        shell: bash
+        run: |
+          pwd
+          ls
+          yarn add install-peers
+          yarn
+          yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
 
-    - name: Build
-      shell: bash
-      run: |
-        echo "require:
-          - yakumo-esbuild
-          - yakumo-publish
-          - yakumo-tsc
-        pipeline:
-          build:
-            - tsc
-            - esbuild" > yakumo.yml
-        pwd
-        ls
-        cat package.json
-        yarn yakumo build
+      - name: Build
+        shell: bash
+        run: |
+          echo "require:
+            - yakumo-esbuild
+            - yakumo-publish
+            - yakumo-tsc
+          pipeline:
+            build:
+              - tsc
+              - esbuild" > yakumo.yml
+          pwd
+          ls
+          cat package.json
+          yarn yakumo build
 
-    - name: Set npm token
-      shell: bash
-      run: echo "//registry.npmjs.org/:_authToken=${{ inputs.token }}" > ~/.npmrc
+      - name: Set npm token
+        shell: bash
+        run: echo "//registry.npmjs.org/:_authToken=${{ inputs.token }}" > ~/.npmrc
 
-    - name: Publish package
-      shell: bash
-      run: yarn yakumo publish --otp=${{ inputs.otp-code }}
+      - name: Publish package
+        shell: bash
+        run: yarn yakumo publish --otp=${{ inputs.otp-code }}
