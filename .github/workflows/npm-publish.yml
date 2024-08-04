@@ -35,7 +35,9 @@ jobs:
         pwd
         ls
         yarn
-        yarn add yakumo typescript yakumo-esbuild yakumo-esbuild-yaml yakumo-publish yakumo-publish-sync yakumo-mocha mocha esbuild yakumo-tsc yml-register esbuild-register -D
+        yarn add yakumo typescript yakumo-esbuild yakumo-esbuild-yaml yakumo-publish \
+          yakumo-publish-sync yakumo-mocha mocha esbuild yakumo-tsc yml-register \ 
+          @types/node @types/react esbuild-register -D
 
     - name: Build
       shell: bash
