@@ -44,4 +44,4 @@ jobs:
 
       - name: Publish package
         shell: bash
-        run: yarn yakumo publish
+        run: yarn yakumo publish --debug
