@@ -30,7 +30,7 @@ jobs:
 
       - name: Eslint
         shell: bash
-        run: eslint ./src
+        run: yarn eslint ./src
 
       - name: Build
         shell: bash
