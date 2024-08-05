@@ -69,5 +69,5 @@ export const askOneQuestion = async (
 };
 
 export const parseAnswerMap = (content: string): Map<string, Answer> => {
-  return JSON.parse(content) as Map<string, Answer>;
+  return new Map<string, Answer>(JSON.parse(content));
 };

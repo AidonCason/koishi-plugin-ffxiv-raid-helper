@@ -138,7 +138,12 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
   );
-  await createSignup(ctx, raid_name, session.userId, JSON.stringify(results));
+  await createSignup(
+    ctx,
+    raid_name,
+    session.userId,
+    JSON.stringify(Array.from(results))
+  );
   return '报名提交成功!请关注群公告里面的报名结果~';
 };
 
