@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           yarn
-          yarn add @types/node @types/react esbuild esbuild-register globals tsx typescript yakumo yakumo-esbuild yakumo-tsc yml-register yakumo-publish -D
+          yarn add yakumo-publish -D
 
       - name: Eslint
         shell: bash
