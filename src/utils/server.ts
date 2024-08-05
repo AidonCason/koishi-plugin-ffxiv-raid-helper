@@ -34,7 +34,8 @@ export const getRaidInfo = async (ctx: Context, raids?: RaidListTable[]) => {
 export const selectRaid = async (
   ctx: Context,
   config: Config,
-  session: Session
+  session: Session,
+  prompt: string
 ) => {
   const raids = await getRaids(ctx);
   const raid_infos = await getRaidInfo(ctx, raids);
@@ -46,7 +47,7 @@ export const selectRaid = async (
     label: 'select_raid',
     type: QuestionType.SignleChoice,
     name: '选择团',
-    content: '请输入编号选择要查看的团',
+    content: prompt,
     answer_range_desc: raid_infos
   });
   const answer = await askOneQuestion(config, session, select_raid_question);

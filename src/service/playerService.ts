@@ -57,7 +57,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!(await checkUserIsInGroup(session, config))) {
     return '请先加群再报名';
   }
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要报名的团');
   if (!raid) return;
   if (!raid.allow_sign_up) {
     return '该团已关闭报名！';
@@ -147,7 +147,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要查看的团');
   if (!raid) return;
   const raid_name = raid.raid_name;
 
@@ -175,7 +175,7 @@ const cancelSignupHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要取消报名的团');
   if (!raid) return;
   const raid_name = raid.raid_name;
 
@@ -207,7 +207,7 @@ const contactLeaderHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要联系的团');
   if (!raid) return;
   return '指挥的联系方式为：qq： ' + raid.raid_leader;
 };

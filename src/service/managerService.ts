@@ -88,7 +88,7 @@ const closeSignupHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
 
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要关闭报名的团');
   if (!raid) return;
 
   await closeSignup(ctx, raid.id);
@@ -108,7 +108,7 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要查看的团');
   if (!raid) return;
   const raid_name = raid.raid_name;
   const sign_up = await selectValidSignupByRaidName(ctx, raid_name);
@@ -129,7 +129,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (session.platform! in ['onebot', 'slack', 'sandbox']) {
     return '尚未支持的导出平台';
   }
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要导出的团');
   if (!raid) return;
   const raid_name = raid.raid_name;
 
@@ -210,7 +210,7 @@ const pushMessageToAllSignup = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session);
+  const raid = await selectRaid(ctx, config, session, '请选择要推送的团');
   if (!raid) return;
   const raid_name = raid.raid_name;
   const sign_up = await selectValidSignupByRaidName(ctx, raid_name);
