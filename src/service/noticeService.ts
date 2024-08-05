@@ -109,9 +109,10 @@ const sendNotice = async (
   ctx: Context,
   config: Config,
   bot: Bot,
+  raid_name: string,
   message: string
 ) => {
-  const notice_users = await getNoticeUsers(ctx, config, message);
+  const notice_users = await getNoticeUsers(ctx, config, raid_name);
   if (notice_users.length > 0) {
     notice_users.forEach(user => {
       setTimeout(() => {
@@ -120,7 +121,7 @@ const sendNotice = async (
     });
   }
 
-  const notice_groups = await getNoticeGroups(ctx, config, message);
+  const notice_groups = await getNoticeGroups(ctx, config, raid_name);
   if (notice_groups.length > 0) {
     notice_groups.forEach(group => {
       setTimeout(() => {

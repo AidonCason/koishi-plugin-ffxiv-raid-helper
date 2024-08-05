@@ -125,10 +125,11 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     r.preitter_answer
   ]);
   output_pairs.push(['QQ(报名使用)', session.userId]);
-  await sendNotice(
+  sendNotice(
     ctx,
     config,
     session.bot,
+    raid_name,
     `${raid_name} 收到来自${session.userId}的一份新的报名表`
   );
   await session.sendQueued(
@@ -189,10 +190,11 @@ const cancelSignupHandler = async (
   for (const sign_up of sign_ups) {
     await cancelSignup(ctx, sign_up.id);
   }
-  await sendNotice(
+  sendNotice(
     ctx,
     config,
     session.bot,
+    raid_name,
     `${raid_name} ${session.userId}取消报名`
   );
   return '已取消报名申请';
