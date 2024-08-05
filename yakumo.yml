@@ -5,5 +5,5 @@
         - tsc
         - esbuild
 - name: yakumo-esbuild
-- ame: yakumo-tsc
-- ame: yakumo/publish
+- name: yakumo-tsc
+- name: yakumo/publish
