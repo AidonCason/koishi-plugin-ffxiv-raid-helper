@@ -7,5 +7,7 @@
         - esbuild
 - id: v8xxw1
   name: yakumo-esbuild
+- id: suo7ei
+  name: yakumo-tsc
 - id: le5zon
   name: yakumo/publish
