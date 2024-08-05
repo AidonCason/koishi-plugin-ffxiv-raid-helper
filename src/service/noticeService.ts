@@ -48,6 +48,7 @@ const noticeToGroup = async (
 };
 
 const noticeOneDayBefore = async (ctx: Context, config: Config) => {
+  logger.info('noticeOneDayBefore...');
   const begin_time = new Date();
   begin_time.setDate(begin_time.getDate() + 1);
   const end_time = new Date(begin_time);
@@ -56,6 +57,7 @@ const noticeOneDayBefore = async (ctx: Context, config: Config) => {
 };
 
 const noticeTwoHoursBefore = async (ctx: Context, config: Config) => {
+  logger.info('noticeTwoHoursBefore...');
   const begin_time = new Date();
   begin_time.setHours(begin_time.getHours() + 2);
   const end_time = new Date(begin_time);
