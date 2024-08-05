@@ -54,9 +54,9 @@ const checkUserIsInGroup = async (session: Session, config: Config) => {
 const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  // if (!(await checkUserIsInGroup(session, config))) {
-  //   return '请先加群再报名';
-  // }
+  if (!(await checkUserIsInGroup(session, config))) {
+    return '请先加群再报名';
+  }
   const raid = await selectRaid(ctx, config, session, '请选择要报名的团');
   if (!raid) return;
   if (!raid.allow_sign_up) {

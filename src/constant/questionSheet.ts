@@ -1,5 +1,4 @@
 import { Config } from '../config/settings';
-import logger from '../utils/logger';
 import { RaidListTable } from './db';
 import { buildQuestion, QuestionDefine, QuestionType } from './question';
 
