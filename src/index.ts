@@ -22,6 +22,7 @@ export * from './config/settings';
 
 export function apply(ctx: Context, config: Config) {
   dbSetup(ctx);
+  const aaa = '111';
 
   // 每分钟检查是否当前有团，有的话对参团人员进行推送
   ctx.cron('0/5 * * * *', () => {
