@@ -93,6 +93,10 @@ export class SignleChoiceQuestionDefine extends IQuestionDefine {
    * 构建答案范围，选项和选项描述对应
    */
   construct_range?: (input: AnswerMap) => ReadonlyMap<string, string>;
+  /**
+   * 问题选项是否换行展示，默认为true
+   */
+  wrap?: boolean;
 }
 
 export type QuestionDefine =
@@ -165,6 +169,7 @@ export class BooleanQuestion extends BooleanQuestionDefine implements Question {
         : this.answer_range_desc[1];
     };
   skip: (input: AnswerMap) => boolean = () => false;
+  wrap: boolean = true;
 
   constructor(question: BooleanQuestionDefine) {
     super();
@@ -207,10 +212,8 @@ export class SignleChoiceQuestion
     const choices = Array.from(range.entries()).map(([key, value]) =>
       key == value ? value : `${key} - ${value}`
     );
-    // 找出选项中最长的长度
-    const max_len = Math.max(...choices.map(e => e.length));
     // 如果选项过多则换行展示
-    return `${this.content}\n${choices.join(max_len * choices.length > 40 ? '\n' : ' ')}`;
+    return `${this.content}\n${choices.join(this.wrap ? '\n' : ' ')}`;
   };
   accept_answer: (answer: string, input: AnswerMap) => boolean = (
     answer,
