@@ -36,6 +36,18 @@ jobs:
         shell: bash
         run: |
           cat package.json
+          echo "require:
+          - esbuild-register
+          - yakumo-esbuild
+          - yakumo-esbuild-yaml
+          - yakumo-mocha
+          - yakumo-publish
+          - yakumo-publish-sync
+          - yakumo-tsc
+          pipeline:
+            build:
+              - tsc
+              - esbuild" > yakumo.yml
           yarn yakumo build
 
       - name: Set npm token
