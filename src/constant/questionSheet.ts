@@ -115,7 +115,8 @@ export const getSheet = (server_name: string, config: Config) => {
       label: '11',
       name: '留言',
       type: QuestionType.Text,
-      content: '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~'
+      content:
+        '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~(没有的话输入任意内容)'
     }
   ];
   return questions.map(question => buildQuestion(question)) as ReadonlyArray<
