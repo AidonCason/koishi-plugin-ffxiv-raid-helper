@@ -1,4 +1,5 @@
 import { Config } from '../config/settings';
+import { RaidListTable } from './db';
 import { buildQuestion, QuestionDefine, QuestionType } from './question';
 
 export const duties: Readonly<Record<string, ReadonlyArray<string>>> = {
@@ -9,7 +10,7 @@ export const duties: Readonly<Record<string, ReadonlyArray<string>>> = {
   法系: ['黑魔', '召唤', '赤魔']
 };
 
-export const getSheet = (server_name: string, config: Config) => {
+export const getSheet = (raid: RaidListTable, config: Config) => {
   const questions: ReadonlyArray<QuestionDefine> = [
     // {
     //   label: '0',
@@ -29,7 +30,7 @@ export const getSheet = (server_name: string, config: Config) => {
       content: '所在服务器',
       construct_range: () =>
         new Map(
-          config.server_name_map[server_name].map((server, idx) => [
+          config.server_name_map[raid.server_name].map((server, idx) => [
             (idx + 1).toString(),
             server
           ])
@@ -52,8 +53,7 @@ export const getSheet = (server_name: string, config: Config) => {
       type: QuestionType.Boolean,
       name: '是否接受调剂',
       content:
-        '选择职业前请您注意，我们保证所有的开荒位置先到先得，但是如果您所选择的职能已经满员了，您是否愿意被调剂到其他职能？',
-      answer_range: [1, 0]
+        '选择职业前请您注意，我们保证所有的开荒位置先到先得，但是如果您所选择的职能已经满员了，您是否愿意被调剂到其他职能？'
     },
     {
       label: '7',

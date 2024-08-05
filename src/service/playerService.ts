@@ -106,9 +106,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (self_signups && self_signups.length > 3) {
     return '取消报名过多，无法重新报名，如有需要请联系指挥说明';
   }
-
-  const server_name = raid.raid_server;
-  const sheet = [...getSheet(server_name, config)].reverse();
+  const sheet = [...getSheet(raid, config)].reverse();
   const results: Map<string, Answer> = new Map();
   while (sheet.length > 0) {
     const q = sheet.pop();
