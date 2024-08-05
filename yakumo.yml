@@ -5,18 +5,7 @@
       build:
         - tsc
         - esbuild
-        - client
-      clean:
-        - tsc --clean
 - id: v8xxw1
   name: yakumo-esbuild
-- id: suo7ei
-  name: yakumo-tsc
-- id: gki9et
-  name: '@koishijs/client/lib'
 - id: le5zon
   name: yakumo/publish
-- id: wnx586
-  name: yakumo/version
-- id: l1criv
-  name: yakumo/upgrade

@@ -54,7 +54,6 @@
     "koishi-plugin-adapter-onebot": "^6.5.8",
     "@eslint/js": "^9.8.0",
     "eslint": "^9.8.0",
-    "@koishijs/client": "^5.29.2",
     "@types/node": "^20.14.5",
     "@types/react": "^18.3.3",
     "esbuild": "^0.18.20",
