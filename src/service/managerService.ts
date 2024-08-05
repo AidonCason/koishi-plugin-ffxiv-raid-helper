@@ -11,7 +11,7 @@ import { getRaidInfo, selectRaid } from '../utils/server';
 import { closeSignup, createRaid, selectByName } from '../dao/raidDAO';
 import { selectValidSignupByRaidName } from '../dao/raidSignupDAO';
 import { buildQuestion, Question, QuestionType } from '../constant/question';
-import { askOneQuestion } from '../utils/question';
+import { askOneQuestion, parseAnswerMap } from '../utils/question';
 
 // 指挥开团
 const openRaidHandler = async (
@@ -116,9 +116,9 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return '当前报名人数为: 0';
   }
   return `当前报名人数为: ${sign_up.length}\n${sign_up.map((s, idx) => {
-    const content = JSON.parse(s.content);
-    const user_server = content.find(p => p[0] == '所在服务器')[1];
-    const user_name = content.find(p => p[0] == '角色姓名')[1];
+    const content = parseAnswerMap(s.content);
+    const user_server = content.get('SERVER')?.preitter_answer;
+    const user_name = content.get('NICKNAME')?.preitter_answer;
     return `序号: ${idx + 1} ${user_server} - ${user_name}`;
   })}`;
 };
@@ -137,17 +137,18 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   } else {
+    const map = parseAnswerMap(sign_up[0].content);
     const title =
-      JSON.parse(sign_up[0].content)
-        .slice(2)
-        .map(p => p[0])
+      Array.from(map.entries())
+        .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
+        .map(entry => entry[1].name)
         .join(',') +
       '\n' +
       sign_up
         .map(s =>
-          JSON.parse(s.content)
-            .slice(2)
-            .map(p => p[1])
+          Array.from(parseAnswerMap(s.content))
+            .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
+            .map(entry => entry[1].preitter_answer)
             .join(',')
         )
         .join('\n');

@@ -18,7 +18,7 @@ import {
   selectValidSignupByRaidName
 } from '../dao/raidSignupDAO';
 import logger from '../utils/logger';
-import { askOneQuestion, onQuestion } from '../utils/question';
+import { askOneQuestion, onQuestion, parseAnswerMap } from '../utils/question';
 
 const checkUserIsInGroup = async (session: Session, config: Config) => {
   if (!session.isDirect) return true;
@@ -118,11 +118,16 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       return '输入超时，报名结束';
     }
   }
+  results.set('CONTACT_QQ_FETCHED', {
+    label: 'CONTACT_QQ_FETCHED',
+    name: 'QQ(报名使用)',
+    answer: session.userId,
+    preitter_answer: session.userId
+  });
   const output_pairs = Array.from(results.values()).map(r => [
     r.name,
     r.preitter_answer
   ]);
-  output_pairs.push(['QQ(报名使用)', session.userId]);
   sendNotice(
     ctx,
     config,
@@ -133,12 +138,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
   );
-  await createSignup(
-    ctx,
-    raid_name,
-    session.userId,
-    JSON.stringify(output_pairs)
-  );
+  await createSignup(ctx, raid_name, session.userId, JSON.stringify(results));
   return '报名提交成功!请关注群公告里面的报名结果~';
 };
 
@@ -157,8 +157,8 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (sign_up && sign_up.length > 0) {
     return (
       '已经提交报名申请:\n' +
-      JSON.parse(sign_up[0].content)
-        .map(j => j[0] + ': ' + j[1])
+      Array.from(parseAnswerMap(sign_up[0].content).entries())
+        .map(v => v[1].name + ': ' + v[1].preitter_answer)
         .join('\n')
     );
   } else {

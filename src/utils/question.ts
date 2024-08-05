@@ -15,6 +15,13 @@ export const onQuestion = async (
   }
 
   if (question.skip(results)) {
+    // 跳过问题时存入空白答案，方便对齐
+    results.set(question.label, {
+      label: question.label,
+      name: question.name,
+      answer: '',
+      preitter_answer: ''
+    });
     return ErrorCode.OK;
   }
   await session.sendQueued(
@@ -59,4 +66,8 @@ export const askOneQuestion = async (
     return;
   }
   return results.get(problem.label);
+};
+
+export const parseAnswerMap = (content: string): Map<string, Answer> => {
+  return JSON.parse(content) as Map<string, Answer>;
 };
