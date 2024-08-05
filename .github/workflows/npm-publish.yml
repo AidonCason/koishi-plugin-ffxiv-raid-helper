@@ -2,7 +2,6 @@ name: Build And Pubish
 run-name: Build And Pubish by @${{ github.actor }}
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v*'
