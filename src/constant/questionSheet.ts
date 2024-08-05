@@ -114,6 +114,7 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       },
       skip: input =>
         input.get('MAIN_DUTY').preitter_answer == '全能' ||
+        input.get('SECOND_DUTY').preitter_answer == '全能' ||
         input.get('DYNAMIC_DUTY').preitter_answer == '否'
     },
     {
