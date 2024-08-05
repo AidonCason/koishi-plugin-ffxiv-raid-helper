@@ -35,14 +35,6 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          echo "require:
-            - yakumo-esbuild
-            - yakumo-publish
-            - yakumo-tsc
-          pipeline:
-            build:
-              - tsc
-              - esbuild" > yakumo.yml
           cat package.json
           yarn yakumo build
 
