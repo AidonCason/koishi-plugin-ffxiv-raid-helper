@@ -169,7 +169,6 @@ export class BooleanQuestion extends BooleanQuestionDefine implements Question {
         : this.answer_range_desc[1];
     };
   skip: (input: AnswerMap) => boolean = () => false;
-  wrap: boolean = true;
 
   constructor(question: BooleanQuestionDefine) {
     super();
@@ -230,6 +229,7 @@ export class SignleChoiceQuestion
     return range.get(answer) ?? '';
   };
   skip: (input: AnswerMap) => boolean = () => false;
+  wrap: boolean = true;
 
   constructor(question: SignleChoiceQuestionDefine) {
     super();
