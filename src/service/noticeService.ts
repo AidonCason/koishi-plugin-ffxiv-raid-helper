@@ -2,9 +2,9 @@ import { Bot, Context } from 'koishi';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import { locale_settings } from '../utils/locale';
-import { selectByDateBetween } from '../dao/raidDAO';
-import { selectValidSignupByRaidName } from '../dao/raidSignupDAO';
-import { getNoticeGroups, getNoticeUsers } from '../utils/raid';
+import { selectByDateBetween } from '../dao/teamDAO';
+import { selectValidSignupByTeamName } from '../dao/signupDAO';
+import { getNoticeGroups, getNoticeUsers } from '../utils/group';
 
 // TODO: 如果后面风控高的话要把好友列表和群组列表缓存
 const noticeToPrivage = async (
@@ -71,22 +71,22 @@ const noticeBefore = async (
   begin_time: Date,
   end_time: Date
 ) => {
-  const raidList = await selectByDateBetween(ctx, begin_time, end_time);
+  const teamList = await selectByDateBetween(ctx, begin_time, end_time);
 
-  if (raidList.length == 0) return;
+  if (teamList.length == 0) return;
   const bot = ctx.bots.find(bot => bot.platform == 'onebot');
   if (!bot || !bot.isActive) {
     logger.warn('找不到onebot机器人，无法推送私信');
     return;
   }
 
-  raidList.forEach(async e => {
-    const msg = `团 ${e.raid_name} 将于 ${e.raid_time.toLocaleString(locale_settings.current)} 发车`;
+  teamList.forEach(async e => {
+    const msg = `团 ${e.team_name} 将于 ${e.raid_start_time.toLocaleString(locale_settings.current)} 发车`;
     logger.info(msg);
 
     try {
       // TODO: 这里应该只推送给大群吧，小群的话就不推送了
-      const groups = await getNoticeGroups(ctx, config, e.raid_name);
+      const groups = await getNoticeGroups(ctx, config, e.team_name);
       groups.forEach(g => {
         noticeToGroup(ctx, config, bot, g, msg);
       });
@@ -95,7 +95,7 @@ const noticeBefore = async (
     }
 
     try {
-      const sign_ups = await selectValidSignupByRaidName(ctx, e.raid_name);
+      const sign_ups = await selectValidSignupByTeamName(ctx, e.team_name);
       sign_ups.forEach(async s => {
         noticeToPrivage(ctx, config, bot, s.user_id, msg);
       });
@@ -109,10 +109,10 @@ const sendNotice = async (
   ctx: Context,
   config: Config,
   bot: Bot,
-  raid_name: string,
+  team_name: string,
   message: string
 ) => {
-  const notice_users = await getNoticeUsers(ctx, config, raid_name);
+  const notice_users = await getNoticeUsers(ctx, config, team_name);
   if (notice_users.length > 0) {
     notice_users.forEach(user => {
       setTimeout(() => {
@@ -121,7 +121,7 @@ const sendNotice = async (
     });
   }
 
-  const notice_groups = await getNoticeGroups(ctx, config, raid_name);
+  const notice_groups = await getNoticeGroups(ctx, config, team_name);
   if (notice_groups.length > 0) {
     notice_groups.forEach(group => {
       setTimeout(() => {
@@ -133,7 +133,7 @@ const sendNotice = async (
 
 export {
   noticeToPrivage,
-  noticeToGroup,
+  noticeToGroup as noticeToGroup,
   noticeOneDayBefore,
   noticeTwoHoursBefore,
   sendNotice

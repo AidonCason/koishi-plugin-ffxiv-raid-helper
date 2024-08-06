@@ -9,8 +9,8 @@ export interface Config {
       admin: string;
       leaders: { user_id: string; notice: boolean; admin: boolean }[];
       chat_groups: { group_id: string; notice: boolean }[];
-      region: string;
-      ignore_region: boolean;
+      region_name: string;
+      ignore_server: boolean;
     };
   };
 }
@@ -89,8 +89,10 @@ export const Config: Schema<Config> = Schema.intersect([
         )
           .role('table')
           .description('相关的群列表'),
-        region: Schema.string().description('团所在服务器（大区）').required(),
-        ignore_region: Schema.boolean()
+        region_name: Schema.string()
+          .description('团所在服务器（大区）')
+          .required(),
+        ignore_server: Schema.boolean()
           .description('跨区支持，开启后不关注区服')
           .default(false)
       }).collapse(),

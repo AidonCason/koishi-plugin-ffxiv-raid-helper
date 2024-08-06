@@ -1,6 +1,6 @@
 import { Config } from './config/settings';
 import {
-  openRaidHandler,
+  openTeamHandler,
   checkNowHandler,
   checkDetailHandler,
   exportHandler,
@@ -21,15 +21,11 @@ export function commandSetup(ctx: Context, config: Config) {
   // 指挥操作
   const leader_command = ctx.command('ffxiv-raid-helper/leader');
   leader_command
-    .subcommand(
-      '开团 <raid_name:string> <raid_time:date>',
-      '开启一个新的raid团',
-      {
-        permissions: ['raid-helper:leader']
-      }
-    )
+    .subcommand('开团 <raid_name:string> <raid_time:date>', '开启一个新团', {
+      permissions: ['raid-helper:leader']
+    })
     .action(async (argv, raid_name: string, raid_time: Date) => {
-      return await openRaidHandler(ctx, config, argv, raid_name, raid_time);
+      return await openTeamHandler(ctx, config, argv, raid_name, raid_time);
     });
   leader_command
     .subcommand('关闭报名', '提前关闭报名', {

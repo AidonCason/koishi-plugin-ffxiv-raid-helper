@@ -1,6 +1,6 @@
 import { Context } from 'koishi';
 import { Config } from './config/settings';
-import { checkAdminPermission, checkLeaderPermission } from './utils/raid';
+import { checkAdminPermission, checkLeaderPermission } from './utils/group';
 
 export function permissionsSetup(ctx: Context, config: Config) {
   // 拥有admin权限视为拥有leader权限

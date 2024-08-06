@@ -1,35 +1,34 @@
 import { $, Context, Driver } from 'koishi';
-import { RaidSignUpTable } from '../constant/db';
-import { raid_sign_up_table_name } from '../constant/common';
+import { TeamSignUpTable, sign_up_table_name } from '../constant/db';
 
 /**
  * 查询该团所有有效的报名申请
- * @param raid_name 团名
+ * @param team_name 团名
  * @returns RaidSignUpTable[]
  */
-export const selectValidSignupByRaidName = async (
+export const selectValidSignupByTeamName = async (
   ctx: Context,
-  raid_name: string
-): Promise<RaidSignUpTable[]> => {
-  return await ctx.database.get(raid_sign_up_table_name, {
-    raid_name: { $eq: raid_name },
+  team_name: string
+): Promise<TeamSignUpTable[]> => {
+  return await ctx.database.get(sign_up_table_name, {
+    team_name: { $eq: team_name },
     is_canceled: { $eq: false }
   });
 };
 
 /**
  * 查询该团某成员所有报名申请
- * @param raid_name 团名
+ * @param team_name 团名
  * @param user_id 用户id，一般为qq号
  * @returns RaidSignUpTable[]
  */
-export const selectAllSignupByRaidNameAndUserId = async (
+export const selectAllSignupByTeamNameAndUserId = async (
   ctx: Context,
-  raid_name: string,
+  team_name: string,
   user_id: string
-): Promise<RaidSignUpTable[]> => {
-  return await ctx.database.get(raid_sign_up_table_name, {
-    raid_name: { $eq: raid_name },
+): Promise<TeamSignUpTable[]> => {
+  return await ctx.database.get(sign_up_table_name, {
+    team_name: { $eq: team_name },
     user_id: { $eq: user_id }
   });
 };
@@ -37,17 +36,17 @@ export const selectAllSignupByRaidNameAndUserId = async (
 /**
  * 查询该团某成员所有有效的报名申请
  * @param ctx
- * @param raid_name 团名
+ * @param team_name 团名
  * @param user_id 用户id，一般为qq号
  * @returns RaidSignUpTable[]
  */
-export const selectAllValidSignupByRaidNameAndUserId = async (
+export const selectAllValidSignupByTeamNameAndUserId = async (
   ctx: Context,
-  raid_name: string,
+  team_name: string,
   user_id: string
-): Promise<RaidSignUpTable[]> => {
-  return await ctx.database.get(raid_sign_up_table_name, {
-    raid_name: { $eq: raid_name },
+): Promise<TeamSignUpTable[]> => {
+  return await ctx.database.get(sign_up_table_name, {
+    team_name: { $eq: team_name },
     user_id: { $eq: user_id },
     is_canceled: { $eq: false }
   });
@@ -56,17 +55,17 @@ export const selectAllValidSignupByRaidNameAndUserId = async (
 /**
  * 查询该团某成员所有取消的报名申请
  * @param ctx
- * @param raid_name 团名
+ * @param team_name 团名
  * @param user_id 用户id，一般为qq号
  * @returns RaidSignUpTable[]
  */
-export const selectAllCanceledSignupByRaidNameAndUserId = async (
+export const selectAllCanceledSignupByTeamNameAndUserId = async (
   ctx: Context,
-  raid_name: string,
+  team_name: string,
   user_id: string
-): Promise<RaidSignUpTable[]> => {
-  return await ctx.database.get(raid_sign_up_table_name, {
-    raid_name: { $eq: raid_name },
+): Promise<TeamSignUpTable[]> => {
+  return await ctx.database.get(sign_up_table_name, {
+    team_name: { $eq: team_name },
     user_id: { $eq: user_id },
     is_canceled: { $eq: true }
   });
@@ -74,18 +73,18 @@ export const selectAllCanceledSignupByRaidNameAndUserId = async (
 
 /**
  * 创建新的报名申请
- * @param raid_name 团名
+ * @param team_name 团名
  * @param user_id 用户id，一般为qq号
  * @param content 报名内容,json格式
  */
 export const createSignup = async (
   ctx: Context,
-  raid_name: string,
+  team_name: string,
   user_id: string,
   content: string
-): Promise<RaidSignUpTable> => {
-  return await ctx.database.create(raid_sign_up_table_name, {
-    raid_name,
+): Promise<TeamSignUpTable> => {
+  return await ctx.database.create(sign_up_table_name, {
+    team_name,
     user_id,
     content,
     is_canceled: false,
@@ -103,7 +102,7 @@ export const cancelSignup = async (
   ctx: Context,
   id: number
 ): Promise<Driver.WriteResult> => {
-  return await ctx.database.upsert(raid_sign_up_table_name, () => [
+  return await ctx.database.upsert(sign_up_table_name, () => [
     {
       id,
       is_canceled: true,
@@ -114,20 +113,20 @@ export const cancelSignup = async (
 
 /**
  * 查询指定团的报名数
- * @returns [{raid_name: string, count: number}]
+ * @returns [{team_name: string, count: number}]
  */
 export const countByRaids = async (
   ctx: Context,
-  raids: { raid_name: string }[]
-): Promise<{ raid_name: string; count: number }[]> => {
+  raids: { team_name: string }[]
+): Promise<{ team_name: string; count: number }[]> => {
   return await ctx.database
-    .select(raid_sign_up_table_name)
+    .select(sign_up_table_name)
     .where({ is_canceled: false })
-    .groupBy('raid_name', { count: row => $.count(row.id) })
+    .groupBy('team_name', { count: row => $.count(row.id) })
     .where(row =>
       $.in(
-        row.raid_name,
-        raids.map(raid => raid.raid_name)
+        row.team_name,
+        raids.map(raid => raid.team_name)
       )
     )
     .execute();

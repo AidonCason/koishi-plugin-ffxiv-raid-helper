@@ -2,7 +2,7 @@ import { Context, Argv, Session } from 'koishi';
 import { Config } from '../config/settings';
 import { ErrorCode } from '../constant/common';
 import { sendNotice } from './noticeService';
-import { selectRaid } from '../utils/server';
+import { selectTeam } from '../utils/team';
 import {
   Answer,
   buildQuestion,
@@ -13,13 +13,13 @@ import { getSheet } from '../constant/questionSheet';
 import {
   cancelSignup,
   createSignup,
-  selectAllCanceledSignupByRaidNameAndUserId,
-  selectAllValidSignupByRaidNameAndUserId,
-  selectValidSignupByRaidName
-} from '../dao/raidSignupDAO';
+  selectAllCanceledSignupByTeamNameAndUserId,
+  selectAllValidSignupByTeamNameAndUserId,
+  selectValidSignupByTeamName
+} from '../dao/signupDAO';
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion, parseAnswerMap } from '../utils/question';
-import { getUserSevers } from '../utils/raid';
+import { getUserSevers } from '../utils/group';
 
 const checkUserIsInGroup = async (session: Session, config: Config) => {
   const userSevers = await getUserSevers(session, config);
@@ -37,25 +37,25 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!(await checkUserIsInGroup(session, config))) {
     return '请先加群再报名';
   }
-  const raid = await selectRaid(ctx, config, session, '请选择要报名的团');
-  if (!raid) return;
-  if (!raid.allow_sign_up) {
+  const team = await selectTeam(ctx, config, session, '请选择要报名的团');
+  if (!team) return;
+  if (!team.allow_sign_up) {
     return '该团已关闭报名！';
   }
   // 开团前24小时截止报名
   const now = new Date();
-  const deadline = new Date(raid.raid_time);
+  const deadline = new Date(team.raid_start_time);
   deadline.setHours(deadline.getHours() - 24);
   if (now > deadline) {
     return '开团前24小时截止报名，如有特殊情况请联系指挥';
   }
 
-  const raid_name = raid.raid_name;
+  const team_name = team.team_name;
 
-  const sign_ups = await selectValidSignupByRaidName(ctx, raid_name);
+  const sign_ups = await selectValidSignupByTeamName(ctx, team_name);
   const self = sign_ups.find(s => s.user_id == session.userId);
   // 报名满了，且非重新报名
-  if (!self && sign_ups && sign_ups.length >= raid.max_members) {
+  if (!self && sign_ups && sign_ups.length >= team.max_members) {
     return '已经报名满了，请下次再来或查看其他团';
   }
   logger.debug('self:', self);
@@ -78,15 +78,15 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     await session.sendQueued('已取消报名', config.message_interval);
   }
 
-  const self_signups = await selectAllCanceledSignupByRaidNameAndUserId(
+  const self_signups = await selectAllCanceledSignupByTeamNameAndUserId(
     ctx,
-    raid_name,
+    team_name,
     session.userId
   );
   if (self_signups && self_signups.length > 3) {
     return '取消报名过多，无法重新报名，如有需要请联系指挥说明';
   }
-  const sheet = [...getSheet(raid, config)].reverse();
+  const sheet = [...getSheet(team, config)].reverse();
   const results: Map<string, Answer> = new Map();
   while (sheet.length > 0) {
     const q = sheet.pop();
@@ -112,15 +112,15 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     ctx,
     config,
     session.bot,
-    raid_name,
-    `${raid_name} 收到来自${session.userId}的一份新的报名表`
+    team_name,
+    `${team_name} 收到来自${session.userId}的一份新的报名表`
   );
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
   );
   await createSignup(
     ctx,
-    raid_name,
+    team_name,
     session.userId,
     JSON.stringify(Array.from(results))
   );
@@ -130,13 +130,13 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session, '请选择要查看的团');
-  if (!raid) return;
-  const raid_name = raid.raid_name;
+  const team = await selectTeam(ctx, config, session, '请选择要查看的团');
+  if (!team) return;
+  const team_name = team.team_name;
 
-  const sign_up = await selectAllValidSignupByRaidNameAndUserId(
+  const sign_up = await selectAllValidSignupByTeamNameAndUserId(
     ctx,
-    raid_name,
+    team_name,
     session.userId
   );
   if (sign_up && sign_up.length > 0) {
@@ -158,13 +158,13 @@ const cancelSignupHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session, '请选择要取消报名的团');
-  if (!raid) return;
-  const raid_name = raid.raid_name;
+  const team = await selectTeam(ctx, config, session, '请选择要取消报名的团');
+  if (!team) return;
+  const team_name = team.team_name;
 
-  const sign_ups = await selectAllValidSignupByRaidNameAndUserId(
+  const sign_ups = await selectAllValidSignupByTeamNameAndUserId(
     ctx,
-    raid_name,
+    team_name,
     session.userId
   );
   if (!sign_ups || sign_ups.length == 0) {
@@ -177,8 +177,8 @@ const cancelSignupHandler = async (
     ctx,
     config,
     session.bot,
-    raid_name,
-    `${raid_name} ${session.userId}取消报名`
+    team_name,
+    `${team_name} ${session.userId}取消报名`
   );
   return '已取消报名申请';
 };
@@ -190,9 +190,9 @@ const contactLeaderHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const raid = await selectRaid(ctx, config, session, '请选择要联系的团');
-  if (!raid) return;
-  return '指挥的联系方式为：qq： ' + raid.raid_leader;
+  const team = await selectTeam(ctx, config, session, '请选择要联系的团');
+  if (!team) return;
+  return '指挥的联系方式为：qq： ' + team.team_leader;
 };
 
 export {

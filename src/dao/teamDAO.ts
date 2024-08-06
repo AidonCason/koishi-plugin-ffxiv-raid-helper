@@ -1,6 +1,5 @@
 import { Context, Driver } from 'koishi';
-import { RaidListTable } from '../constant/db';
-import { raid_table_name } from '../constant/common';
+import { TeamListTable, team_table_name } from '../constant/db';
 
 /**
  * 查询时间范围内的团 [beginTime,endTime)
@@ -9,9 +8,9 @@ export const selectByDateBetween = async (
   ctx: Context,
   begin_time: Date,
   end_time: Date
-): Promise<RaidListTable[]> => {
-  return await ctx.database.get(raid_table_name, {
-    raid_time: {
+): Promise<TeamListTable[]> => {
+  return await ctx.database.get(team_table_name, {
+    raid_start_time: {
       $gte: begin_time,
       $lte: end_time
     }
@@ -24,9 +23,9 @@ export const selectByDateBetween = async (
 export const selectByDateAfter = async (
   ctx: Context,
   begin_time: Date
-): Promise<RaidListTable[]> => {
-  return await ctx.database.get(raid_table_name, {
-    raid_time: {
+): Promise<TeamListTable[]> => {
+  return await ctx.database.get(team_table_name, {
+    raid_start_time: {
       $gt: begin_time
     }
   });
@@ -37,32 +36,32 @@ export const selectByDateAfter = async (
  */
 export const selectByName = async (
   ctx: Context,
-  raid_name: string
-): Promise<RaidListTable[]> => {
-  return await ctx.database.get(raid_table_name, {
-    raid_name: { $eq: raid_name }
+  team_name: string
+): Promise<TeamListTable[]> => {
+  return await ctx.database.get(team_table_name, {
+    team_name: { $eq: team_name }
   });
 };
 
 /**
  * 开团
  */
-export const createRaid = async (
+export const createTeam = async (
   ctx: Context,
   group_name: string,
-  raid_name: string,
+  team_name: string,
   max_members: number,
   user_id: string,
-  raid_time: Date,
-  server_name: string
-): Promise<RaidListTable> => {
-  return await ctx.database.create(raid_table_name, {
+  raid_start_time: Date,
+  region_name: string
+): Promise<TeamListTable> => {
+  return await ctx.database.create(team_table_name, {
     group_name,
-    raid_name,
+    team_name: team_name,
     max_members,
-    raid_leader: user_id,
-    raid_time,
-    raid_server: server_name,
+    team_leader: user_id,
+    raid_start_time: raid_start_time,
+    team_region: region_name,
     allow_sign_up: true,
     created_at: new Date(),
     updated_at: new Date()
@@ -76,7 +75,7 @@ export const closeSignup = async (
   ctx: Context,
   id: number
 ): Promise<Driver.WriteResult> => {
-  return await ctx.database.upsert(raid_table_name, () => [
+  return await ctx.database.upsert(team_table_name, () => [
     {
       id,
       allow_sign_up: false,

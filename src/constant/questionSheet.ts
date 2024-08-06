@@ -1,5 +1,5 @@
 import { Config } from '../config/settings';
-import { RaidListTable } from './db';
+import { TeamListTable } from './db';
 import { buildQuestion, QuestionDefine, QuestionType } from './question';
 
 export const duties: Readonly<Record<string, ReadonlyArray<string>>> = {
@@ -11,7 +11,7 @@ export const duties: Readonly<Record<string, ReadonlyArray<string>>> = {
   全能: []
 };
 
-export const getSheet = (raid: RaidListTable, config: Config) => {
+export const getSheet = (raid: TeamListTable, config: Config) => {
   const questions: ReadonlyArray<QuestionDefine> = [
     // {
     //   label: '0',
@@ -37,7 +37,7 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       content: '所在服务器',
       construct_range: () =>
         new Map(
-          config.region_server_map[raid.raid_server].map((server, idx) => [
+          config.region_server_map[raid.team_region].map((server, idx) => [
             (idx + 1).toString(),
             server
           ])

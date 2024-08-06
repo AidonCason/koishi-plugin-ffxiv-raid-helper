@@ -1,8 +1,16 @@
 import { Context, Session } from 'koishi';
 import { Config } from '../config/settings';
-import { selectByName } from '../dao/raidDAO';
+import { selectByName } from '../dao/teamDAO';
 import logger from './logger';
-import { getServerGroupMap } from './server';
+
+export const getChatGroupMap = (config: Config) => {
+  return new Map(
+    Object.entries(config.group_config_map).map(([k, v]) => [
+      k,
+      v.chat_groups.map(g => g.group_id)
+    ])
+  );
+};
 
 /**
  * 查询该用户有指挥权限的所有团
@@ -68,15 +76,15 @@ export const checkLeaderPermission = (
 /**
  * 获取团名
  */
-export const getGroupNameByRaidName = async (
+export const getGroupNameByTeamName = async (
   ctx: Context,
-  raid_name: string
+  team_name: string
 ) => {
-  const raids = await selectByName(ctx, raid_name);
-  if (raids.length == 0) {
+  const teams = await selectByName(ctx, team_name);
+  if (teams.length == 0) {
     throw new Error('未查询到该团');
   }
-  return raids[0].group_name;
+  return teams[0].group_name;
 };
 
 /**
@@ -85,9 +93,9 @@ export const getGroupNameByRaidName = async (
 export const getNoticeUsers = async (
   ctx: Context,
   config: Config,
-  raid_name: string
+  team_name: string
 ) => {
-  const group_name = await getGroupNameByRaidName(ctx, raid_name);
+  const group_name = await getGroupNameByTeamName(ctx, team_name);
   return (
     config.group_config_map[group_name]?.leaders
       ?.filter(l => l.notice)
@@ -101,9 +109,9 @@ export const getNoticeUsers = async (
 export const getNoticeGroups = async (
   ctx: Context,
   config: Config,
-  raid_name: string
+  team_name: string
 ) => {
-  const group_name = await getGroupNameByRaidName(ctx, raid_name);
+  const group_name = await getGroupNameByTeamName(ctx, team_name);
   return (
     config.group_config_map[group_name]?.chat_groups
       ?.filter(l => l.notice)
@@ -122,7 +130,7 @@ export const getUserSevers = async (session: Session, config: Config) => {
   if (session.platform != 'onebot') return new Set<string>();
   const userId = session.userId;
   const userSevers = new Set<string>();
-  for (const [server_name, group_ids] of getServerGroupMap(config)) {
+  for (const [server_name, group_ids] of getChatGroupMap(config)) {
     for (const group_id of group_ids) {
       const groupList = await session.onebot.getGroupList();
       if (!groupList.map(g => g.group_id.toString()).includes(group_id)) {
