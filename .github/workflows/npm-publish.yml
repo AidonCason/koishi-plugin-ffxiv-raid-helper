@@ -57,6 +57,6 @@ jobs:
         shell: bash
         run: |
           PUB_OUT=$(yarn yakumo publish --debug 2>&1)
-          echo PUB_OUT
-          echo PUB_OUT | grep -q '1 packages'
+          echo $PUB_OUT
+          echo $PUB_OUT | grep -q '1 packages'
           
