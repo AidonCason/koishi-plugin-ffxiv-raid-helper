@@ -1,6 +1,8 @@
-import { Context } from 'koishi';
+import { Context, Session } from 'koishi';
 import { Config } from '../config/settings';
 import { selectByName } from '../dao/raidDAO';
+import logger from './logger';
+import { getServerGroupMap } from './server';
 
 /**
  * 查询该用户有指挥权限的所有团
@@ -107,4 +109,25 @@ export const getNoticeGroups = async (
       ?.filter(l => l.notice)
       ?.map(l => l.group_id) || []
   );
+};
+
+export const getUserSevers = async (session: Session, config: Config) => {
+  if (!session.isDirect) return new Set<string>();
+  if (session.platform != 'onebot') return new Set<string>();
+  const userId = session.userId;
+  const userSevers = new Set<string>();
+  for (const [server_name, group_ids] of getServerGroupMap(config)) {
+    for (const group_id of group_ids) {
+      const groupList = await session.onebot.getGroupList();
+      if (!groupList.map(g => g.group_id.toString()).includes(group_id)) {
+        logger.warn(`group ${group_id} not exist`);
+        continue;
+      }
+      const member_list = await session.onebot.getGroupMemberList(group_id);
+      if (member_list.map(m => m.user_id.toString()).includes(userId)) {
+        userSevers.add(server_name);
+      }
+    }
+  }
+  return userSevers;
 };
