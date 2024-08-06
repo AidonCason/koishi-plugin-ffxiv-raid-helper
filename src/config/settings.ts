@@ -2,15 +2,15 @@ import { Schema, Time } from 'koishi';
 
 export interface Config {
   message_interval: number;
-  server_name_map: { [key: string]: string[] };
+  region_server_map: { [key: string]: string[] };
   group_config_map: {
     [key: string]: {
       platform: 'onebot' | 'sandbox';
       admin: string;
       leaders: { user_id: string; notice: boolean; admin: boolean }[];
-      groups: { group_id: string; notice: boolean }[];
-      server: string;
-      ignore_server: boolean;
+      chat_groups: { group_id: string; notice: boolean }[];
+      region: string;
+      ignore_region: boolean;
     };
   };
 }
@@ -24,7 +24,7 @@ export const Config: Schema<Config> = Schema.intersect([
       .description('每轮消息发送间隔，单位毫秒')
   }).description('基础设置'),
   Schema.object({
-    server_name_map: Schema.dict(
+    region_server_map: Schema.dict(
       Schema.array(Schema.string().pattern(/^\S+$/))
         .role('table')
         .description('小区的名字'),
@@ -81,7 +81,7 @@ export const Config: Schema<Config> = Schema.intersect([
         )
           .role('table')
           .description('指挥列表'),
-        groups: Schema.array(
+        chat_groups: Schema.array(
           Schema.object({
             group_id: Schema.string().description('群组id').required(),
             notice: Schema.boolean().description('接收消息通知').default(true)
@@ -89,8 +89,8 @@ export const Config: Schema<Config> = Schema.intersect([
         )
           .role('table')
           .description('相关的群列表'),
-        server: Schema.string().description('团所在服务器（大区）').required(),
-        ignore_server: Schema.boolean()
+        region: Schema.string().description('团所在服务器（大区）').required(),
+        ignore_region: Schema.boolean()
           .description('跨区支持，开启后不关注区服')
           .default(false)
       }).collapse(),

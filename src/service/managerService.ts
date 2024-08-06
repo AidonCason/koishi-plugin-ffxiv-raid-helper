@@ -37,8 +37,10 @@ const openRaidHandler = async (
   if (session.guildId) {
     // 以群号查找是哪个团
     Object.entries(config.group_config_map).map(([group_name, group]) => {
-      if (group.groups.findIndex(g => g.group_id == session.guildId) >= 0) {
-        group_name_server_name_map.set(group_name, group.server);
+      if (
+        group.chat_groups.findIndex(g => g.group_id == session.guildId) >= 0
+      ) {
+        group_name_server_name_map.set(group_name, group.region);
       }
     });
   }
@@ -47,7 +49,7 @@ const openRaidHandler = async (
     // 通过发送的userId查找是哪个团
     Object.entries(config.group_config_map).map(([group_name, group]) => {
       if (group.leaders.findIndex(l => l.user_id == session.userId) >= 0) {
-        group_name_server_name_map.set(group_name, group.server);
+        group_name_server_name_map.set(group_name, group.region);
       }
     });
   }

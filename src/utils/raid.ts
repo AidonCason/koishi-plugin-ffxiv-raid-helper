@@ -105,12 +105,18 @@ export const getNoticeGroups = async (
 ) => {
   const group_name = await getGroupNameByRaidName(ctx, raid_name);
   return (
-    config.group_config_map[group_name]?.groups
+    config.group_config_map[group_name]?.chat_groups
       ?.filter(l => l.notice)
       ?.map(l => l.group_id) || []
   );
 };
 
+/**
+ * 获取用户
+ * @param session
+ * @param config
+ * @returns
+ */
 export const getUserSevers = async (session: Session, config: Config) => {
   if (!session.isDirect) return new Set<string>();
   if (session.platform != 'onebot') return new Set<string>();

@@ -11,7 +11,7 @@ export const getServerGroupMap = (config: Config) => {
   return new Map(
     Object.entries(config.group_config_map).map(([k, v]) => [
       k,
-      v.groups.map(g => g.group_id)
+      v.chat_groups.map(g => g.group_id)
     ])
   );
 };

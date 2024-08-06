@@ -37,7 +37,7 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       content: '所在服务器',
       construct_range: () =>
         new Map(
-          config.server_name_map[raid.raid_server].map((server, idx) => [
+          config.region_server_map[raid.raid_server].map((server, idx) => [
             (idx + 1).toString(),
             server
           ])
