@@ -22,7 +22,13 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       label: 'NEWBIE',
       type: QuestionType.Boolean,
       name: '是否初见',
-      content: '是否已经通关零式女王古殿？'
+      content: '是否已经通关零式女王古殿？',
+      answer_range: [1, 0],
+      answer_range_desc: ['是', '否'],
+      construct_preitter_answer: answer => {
+        const num = parseInt(answer);
+        return num === 1 ? '否' : '是'; // 展示和记录上反转
+      }
     },
     {
       label: 'SERVER',
@@ -61,9 +67,14 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       type: QuestionType.SignleChoice,
       name: '主选职能',
       content: '职能-职业选择:职能',
-      construct_range: () =>
+      construct_range: input =>
         new Map(
-          Object.keys(duties).map((duty, idx) => [(idx + 1).toString(), duty])
+          Object.keys(duties)
+            .filter(
+              duty =>
+                input.get('NEWBIE').preitter_answer != '是' || duty != '全能'
+            )
+            .map((duty, idx) => [(idx + 1).toString(), duty])
         )
     },
     {
@@ -72,8 +83,10 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       name: '主选职业',
       content: '职能-职业选择:职业',
       construct_range: input => {
-        const duty =
-          Object.keys(duties)[parseInt(input.get('MAIN_DUTY').answer) - 1];
+        const filter_duties = Object.keys(duties).filter(
+          duty => input.get('NEWBIE').preitter_answer != '是' || duty != '全能'
+        );
+        const duty = filter_duties[parseInt(input.get('MAIN_DUTY').answer) - 1];
         return new Map(
           duties[duty].map((job, idx) => [(idx + 1).toString(), job])
         );
@@ -90,7 +103,11 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       construct_range: input =>
         new Map(
           Object.keys(duties)
-            .filter(duty => duty != input.get('MAIN_DUTY').preitter_answer)
+            .filter(
+              duty =>
+                duty != input.get('MAIN_DUTY').preitter_answer &&
+                (input.get('NEWBIE').preitter_answer != '是' || duty != '全能')
+            )
             .map((duty, idx) => [(idx + 1).toString(), duty])
         ),
       skip: input =>
@@ -104,7 +121,9 @@ export const getSheet = (raid: RaidListTable, config: Config) => {
       content: '职能-职业选择:次选职业',
       construct_range: input => {
         const filter_duties = Object.keys(duties).filter(
-          duty => duty != input.get('MAIN_DUTY').preitter_answer
+          duty =>
+            duty != input.get('MAIN_DUTY').preitter_answer &&
+            (input.get('NEWBIE').preitter_answer != '是' || duty != '全能')
         );
         const duty =
           filter_duties[parseInt(input.get('SECOND_DUTY').answer) - 1];
