@@ -133,7 +133,7 @@ const sendNotice = async (
 
 export {
   noticeToPrivage,
-  noticeToGroup as noticeToGroup,
+  noticeToGroup,
   noticeOneDayBefore,
   noticeTwoHoursBefore,
   sendNotice
