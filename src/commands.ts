@@ -14,12 +14,17 @@ import {
   contactLeaderHandler
 } from './service/playerService';
 import { Context } from 'koishi';
+import { getAllChatGroups } from './utils/group';
 
 export function commandSetup(ctx: Context, config: Config) {
   ctx.command('ffxiv-raid-helper', '最终幻想14高难组团管理助手');
 
   // 指挥操作
-  const leader_command = ctx.command('ffxiv-raid-helper/leader');
+  const leader_command = ctx
+    .intersect(session => session.guildId in getAllChatGroups(config))
+    .command('ffxiv-raid-helper/leader', {
+      permissions: ['raid-helper:leader']
+    });
   leader_command
     .subcommand('开团 <raid_name:string> <raid_time:date>', '开启一个新团', {
       permissions: ['raid-helper:leader']
@@ -74,21 +79,39 @@ export function commandSetup(ctx: Context, config: Config) {
   // 报名者操作，仅私聊
   const user_command = ctx
     .intersect(session => session.isDirect)
-    .command('ffxiv-raid-helper/user');
+    .command('ffxiv-raid-helper/user', {
+      permissions: ['raid-helper:user']
+    });
 
-  user_command.subcommand('报名').action(async argv => {
-    return await applyHandler(ctx, config, argv);
-  });
+  user_command
+    .subcommand('报名', {
+      permissions: ['raid-helper:user']
+    })
+    .action(async argv => {
+      return await applyHandler(ctx, config, argv);
+    });
 
-  user_command.subcommand('查看报名').action(async argv => {
-    return await checkSelfHandler(ctx, config, argv);
-  });
+  user_command
+    .subcommand('查看报名', {
+      permissions: ['raid-helper:user']
+    })
+    .action(async argv => {
+      return await checkSelfHandler(ctx, config, argv);
+    });
 
-  user_command.subcommand('取消报名').action(async argv => {
-    return await cancelSignupHandler(ctx, config, argv);
-  });
+  user_command
+    .subcommand('取消报名', {
+      permissions: ['raid-helper:user']
+    })
+    .action(async argv => {
+      return await cancelSignupHandler(ctx, config, argv);
+    });
 
-  user_command.subcommand('联系指挥').action(async argv => {
-    return await contactLeaderHandler(ctx, config, argv);
-  });
+  user_command
+    .subcommand('联系指挥', {
+      permissions: ['raid-helper:user']
+    })
+    .action(async argv => {
+      return await contactLeaderHandler(ctx, config, argv);
+    });
 }

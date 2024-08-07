@@ -19,13 +19,13 @@ import {
 } from '../dao/signupDAO';
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion, parseAnswerMap } from '../utils/question';
-import { getUserSevers } from '../utils/group';
+import { getUserGroups } from '../utils/group';
 
 const checkUserIsInGroup = async (session: Session, config: Config) => {
-  const userSevers = await getUserSevers(session, config);
+  const userGroups = await getUserGroups(session, config);
 
-  if (userSevers.size == 0) {
-    logger.warn(`user ${session.userId} not in any server`);
+  if (userGroups.size == 0) {
+    logger.warn(`user ${session.userId} not in any group`);
     return false;
   }
   return true;

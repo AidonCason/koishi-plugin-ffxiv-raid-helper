@@ -3,6 +3,16 @@ import { Config } from '../config/settings';
 import { selectByName } from '../dao/teamDAO';
 import logger from './logger';
 
+export const getAllChatGroups = (config: Config) => {
+  return Array.from(
+    new Set(
+      Object.values(config.group_config_map).flatMap(g =>
+        g.chat_groups.map(c => c.group_id)
+      )
+    )
+  );
+};
+
 export const getChatGroupMap = (config: Config) => {
   return new Map(
     Object.entries(config.group_config_map).map(([k, v]) => [
@@ -144,4 +154,30 @@ export const getUserSevers = async (session: Session, config: Config) => {
     }
   }
   return userSevers;
+};
+
+export const getUserGroups = async (session: Session, config: Config) => {
+  if (!session.isDirect) return new Set<string>();
+  if (session.platform != 'onebot') return new Set<string>();
+  const userId = session.userId;
+  const userGroups = new Set<string>();
+  for (const [group_name, group] of Object.entries(config.group_config_map)) {
+    for (const chat_group of group.chat_groups) {
+      const groupList = await session.onebot.getGroupList();
+      if (
+        !groupList.map(g => g.group_id.toString()).includes(chat_group.group_id)
+      ) {
+        logger.warn(`group ${chat_group.group_id} not exist`);
+        continue;
+      }
+      const member_list = await session.onebot.getGroupMemberList(
+        chat_group.group_id
+      );
+      if (member_list.map(m => m.user_id.toString()).includes(userId)) {
+        userGroups.add(group_name);
+      }
+    }
+  }
+
+  return userGroups;
 };
