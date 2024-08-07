@@ -30,7 +30,7 @@ export const getAdminGroups = (
 /**
  * 查询该用户有指挥权限的所有团
  */
-export const getGroups = (
+export const getLeaderGroups = (
   config: Config,
   platform: string,
   user_id: string
