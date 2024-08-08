@@ -2,7 +2,7 @@ import { Context, Argv, Session } from 'koishi';
 import { Config } from '../config/settings';
 import { ErrorCode } from '../constant/common';
 import { sendNotice } from './noticeService';
-import { selectTeam } from '../utils/team';
+import { selectCurrentTeam } from '../utils/team';
 import {
   Answer,
   buildQuestion,
@@ -37,7 +37,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!(await checkUserIsInGroup(session, config))) {
     return '请先加群再报名';
   }
-  const team = await selectTeam(ctx, config, session, '请选择要报名的团');
+  const team = await selectCurrentTeam(ctx, config, session);
   if (!team) return;
   if (!team.allow_sign_up) {
     return '该团已关闭报名！';
@@ -130,7 +130,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
 const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const team = await selectTeam(ctx, config, session, '请选择要查看的团');
+  const team = await selectCurrentTeam(ctx, config, session);
   if (!team) return;
   const team_name = team.team_name;
 
@@ -158,7 +158,7 @@ const cancelSignupHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const team = await selectTeam(ctx, config, session, '请选择要取消报名的团');
+  const team = await selectCurrentTeam(ctx, config, session);
   if (!team) return;
   const team_name = team.team_name;
 
@@ -190,7 +190,7 @@ const contactLeaderHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const team = await selectTeam(ctx, config, session, '请选择要联系的团');
+  const team = await selectCurrentTeam(ctx, config, session);
   if (!team) return;
   return '指挥的联系方式为：qq： ' + team.team_leader;
 };

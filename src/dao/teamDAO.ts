@@ -44,6 +44,27 @@ export const selectByName = async (
 };
 
 /**
+ * 查询指定时间后的团 (beginTime,+∞) 并且是指定团队
+ *
+ * @param ctx
+ * @param begin_time
+ * @param group_name
+ * @returns
+ */
+export const selectByDateAfterAndGroupName = async (
+  ctx: Context,
+  begin_time: Date,
+  group_name: string
+): Promise<TeamListTable[]> => {
+  return await ctx.database.get(team_table_name, {
+    raid_start_time: {
+      $gt: begin_time
+    },
+    group_name: { $eq: group_name }
+  });
+};
+
+/**
  * 开团
  */
 export const createTeam = async (

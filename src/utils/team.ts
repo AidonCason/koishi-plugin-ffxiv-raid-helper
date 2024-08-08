@@ -1,20 +1,14 @@
 import { Context, Session } from 'koishi';
 import { TeamListTable } from '../constant/db';
 import { Config } from '../config/settings';
-import { selectByDateAfter } from '../dao/teamDAO';
+import { selectByDateAfterAndGroupName } from '../dao/teamDAO';
 import { countByRaids } from '../dao/signupDAO';
 import { buildQuestion, QuestionType } from '../constant/question';
 import { askOneQuestion } from './question';
 import { date_locale_options, locale_settings } from './locale';
 
-export const getTeams = async (ctx: Context) => {
-  return await selectByDateAfter(ctx, new Date());
-};
-
 // 获取展示的团信息
-export const getTeamInfo = async (ctx: Context, teams?: TeamListTable[]) => {
-  if (!teams) teams = await getTeams(ctx);
-  if (!teams) return;
+export const getTeamInfo = async (ctx: Context, teams: TeamListTable[]) => {
   const sign_ups = await countByRaids(ctx, teams);
   return teams.map(
     team =>
@@ -22,26 +16,96 @@ export const getTeamInfo = async (ctx: Context, teams?: TeamListTable[]) => {
   );
 };
 
-export const selectTeam = async (
+export const selectGroupName = async (
   ctx: Context,
   config: Config,
-  session: Session,
-  prompt: string
-) => {
-  const teams = await getTeams(ctx);
-  const team_infos = await getTeamInfo(ctx, teams);
-  if (!team_infos) {
+  session: Session
+): Promise<string> => {
+  const group_name_set = new Set<string>();
+  // 从群组内查找
+  if (session.guildId) {
+    Object.entries(config.group_config_map).forEach(([group_name, group]) => {
+      if (
+        group.chat_groups.findIndex(g => g.group_id == session.guildId) >= 0
+      ) {
+        group_name_set.add(group_name);
+      }
+    });
+  }
+  // 从leader查找
+  if (group_name_set.size == 0) {
+    Object.entries(config.group_config_map).forEach(([group_name, group]) => {
+      if (group.leaders.findIndex(l => l.user_id == session.userId) >= 0) {
+        group_name_set.add(group_name);
+      }
+    });
+  }
+  // 从member查找
+  if (group_name_set.size == 0 && session.platform == 'onebot') {
+    Object.entries(config.group_config_map).forEach(
+      async ([group_name, group]) => {
+        const member_list = await session.onebot.getGroupMemberList(
+          group.chat_groups[0].group_id
+        );
+        if (
+          member_list.map(m => m.user_id.toString()).includes(session.userId)
+        ) {
+          group_name_set.add(group_name);
+        }
+      }
+    );
+  }
+  // 如果只有一个团，那么就不用选择了
+  if (group_name_set.size == 1) {
+    return group_name_set.values().next().value;
+  }
+  // 都没查到的话查找范围改成所有团
+  if (group_name_set.size == 0) {
+    Object.keys(config.group_config_map).forEach(group_name => {
+      group_name_set.add(group_name);
+    });
+  }
+  const group_choice_question = buildQuestion({
+    label: 'select_group',
+    type: QuestionType.SignleChoice,
+    name: '选择团',
+    content: '请选择一个团',
+    answer_range_desc: Array.from(group_name_set)
+  });
+  const answer = await askOneQuestion(config, session, group_choice_question);
+  if (!answer) {
+    throw new Error('未选择团');
+  }
+  return answer.preitter_answer;
+};
+
+export const selectCurrentTeam = async (
+  ctx: Context,
+  config: Config,
+  session: Session
+): Promise<TeamListTable> => {
+  const group_name = await selectGroupName(ctx, config, session);
+  const teams = await selectByDateAfterAndGroupName(
+    ctx,
+    new Date(),
+    group_name
+  );
+  if (!teams) {
     await session.sendQueued('未查询到当前有团', config.message_interval);
     return;
   }
+  if (teams.length == 1) return teams[0];
+  const team_infos = await getTeamInfo(ctx, teams);
   const select_team_question = buildQuestion({
     label: 'select_team',
     type: QuestionType.SignleChoice,
     name: '选择团',
-    content: prompt,
+    content: '请选择一个团',
     answer_range_desc: team_infos
   });
   const answer = await askOneQuestion(config, session, select_team_question);
-  if (!answer) return;
+  if (!answer) {
+    throw new Error('未选择团');
+  }
   return teams[parseInt(answer.answer) - 1];
 };

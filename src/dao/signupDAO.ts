@@ -111,6 +111,18 @@ export const cancelSignup = async (
   ]);
 };
 
+export const countByTeamName = async (
+  ctx: Context,
+  team_name: string
+): Promise<number> => {
+  return await ctx.database
+    .get(sign_up_table_name, {
+      team_name: { $eq: team_name },
+      is_canceled: { $eq: false }
+    })
+    .then(sign_ups => sign_ups.length);
+};
+
 /**
  * 查询指定团的报名数
  * @returns [{team_name: string, count: number}]
