@@ -21,14 +21,17 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 指挥操作
   const leader_command = ctx
-    .intersect(session => session.guildId in getAllChatGroups(config))
-    .command('ffxiv-raid-helper/leader', {
+    .intersect(
+      session => session.guildId in getAllChatGroups(config) || session.isDirect
+    )
+    .command('ffxiv-raid-helper.leader', {
       permissions: ['raid-helper:leader']
     });
   leader_command
     .subcommand('开团 <raid_name:string> <raid_time:date>', '开启一个新团', {
       permissions: ['raid-helper:leader']
     })
+    .example('开团 114团 2024-01-01T20:00')
     .action(async (argv, raid_name: string, raid_time: Date) => {
       return await openTeamHandler(ctx, config, argv, raid_name, raid_time);
     });
@@ -79,7 +82,7 @@ export function commandSetup(ctx: Context, config: Config) {
   // 报名者操作，仅私聊
   const user_command = ctx
     .intersect(session => session.isDirect)
-    .command('ffxiv-raid-helper/user', {
+    .command('ffxiv-raid-helper.user', {
       permissions: ['raid-helper:user']
     });
 
