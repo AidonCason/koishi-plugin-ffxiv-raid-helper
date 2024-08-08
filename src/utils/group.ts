@@ -4,11 +4,9 @@ import { selectByName } from '../dao/teamDAO';
 import logger from './logger';
 
 export const getAllChatGroups = (config: Config) => {
-  return Array.from(
-    new Set(
-      Object.values(config.group_config_map).flatMap(g =>
-        g.chat_groups.map(c => c.group_id)
-      )
+  return new Set(
+    Object.values(config.group_config_map).flatMap(g =>
+      g.chat_groups.map(c => c.group_id)
     )
   );
 };

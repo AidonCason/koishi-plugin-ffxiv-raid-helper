@@ -14,15 +14,17 @@ import {
   contactLeaderHandler
 } from './service/playerService';
 import { Context } from 'koishi';
-import { getAllChatGroups } from './utils/group';
-
+import { checkLeaderPermission, getAllChatGroups } from './utils/group';
 export function commandSetup(ctx: Context, config: Config) {
   ctx.command('ffxiv-raid-helper', '最终幻想14高难组团管理助手');
 
-  // 指挥操作
+  // 指挥操作 仅限在配置的群内或指挥私聊
   const leader_command = ctx
     .intersect(
-      session => session.guildId in getAllChatGroups(config) || session.isDirect
+      session =>
+        getAllChatGroups(config).has(session.guildId) ||
+        (session.isDirect &&
+          checkLeaderPermission(config, session.platform, session.userId))
     )
     .command('ffxiv-raid-helper.leader', {
       permissions: ['raid-helper:leader']
