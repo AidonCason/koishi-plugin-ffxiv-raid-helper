@@ -29,6 +29,7 @@
     "url": "git+https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper.git"
   },
   "peerDependencies": {
+    "fuse.js": "^7.0.0",
     "iconv-lite": "^0.6.2",
     "koishi": "^4.17.10",
     "koishi-plugin-adapter-onebot": "^6.5.8",
