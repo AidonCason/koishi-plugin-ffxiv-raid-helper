@@ -6,6 +6,7 @@ import { countByRaids } from '../dao/signupDAO';
 import { buildQuestion, QuestionType } from '../constant/question';
 import { askOneQuestion } from './question';
 import { date_locale_options, locale_settings } from './locale';
+import logger from './logger';
 
 // 获取展示的团信息
 export const getTeamInfo = async (ctx: Context, teams: TeamListTable[]) => {
@@ -45,19 +46,16 @@ export const selectGroupName = async (
   }
   // 从member查找
   if (group_name_set.size == 0 && session.platform == 'onebot') {
-    Object.entries(config.group_config_map).forEach(
-      async ([group_name, group]) => {
-        const member_list = await session.onebot.getGroupMemberList(
-          group.chat_groups[0].group_id
-        );
-        if (
-          member_list.map(m => m.user_id.toString()).includes(session.userId)
-        ) {
-          group_name_set.add(group_name);
-        }
+    for (const [group_name, group] of Object.entries(config.group_config_map)) {
+      const member_list = await session.onebot.getGroupMemberList(
+        group.chat_groups[0].group_id
+      );
+      if (member_list.map(m => m.user_id.toString()).includes(session.userId)) {
+        group_name_set.add(group_name);
       }
-    );
+    }
   }
+  logger.debug('group_name_set:', group_name_set);
   // 如果只有一个团，那么就不用选择了
   if (group_name_set.size == 1) {
     return group_name_set.values().next().value;
