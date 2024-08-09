@@ -35,6 +35,9 @@ export const selectGroupName = async (
   // 从leader查找
   if (group_name_set.size == 0) {
     Object.entries(config.group_config_map).forEach(([group_name, group]) => {
+      if (group.admin == session.userId) {
+        group_name_set.add(group_name);
+      }
       if (group.leaders.findIndex(l => l.user_id == session.userId) >= 0) {
         group_name_set.add(group_name);
       }
@@ -90,22 +93,22 @@ export const selectCurrentTeam = async (
     new Date(),
     group_name
   );
-  if (!teams) {
-    await session.sendQueued('未查询到当前有团', config.message_interval);
-    return;
+  if (!teams || teams.length == 0) {
+    await session.sendQueued('未查询到当前有队伍', config.message_interval);
+    throw new Error('未查询到当前有队伍');
   }
   if (teams.length == 1) return teams[0];
   const team_infos = await getTeamInfo(ctx, teams);
   const select_team_question = buildQuestion({
     label: 'select_team',
     type: QuestionType.SignleChoice,
-    name: '选择团',
-    content: '请选择一个团',
+    name: '选择队伍',
+    content: '请选择一个队伍',
     answer_range_desc: team_infos
   });
   const answer = await askOneQuestion(config, session, select_team_question);
   if (!answer) {
-    throw new Error('未选择团');
+    throw new Error('未选择队伍');
   }
   return teams[parseInt(answer.answer) - 1];
 };
