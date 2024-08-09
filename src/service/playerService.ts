@@ -72,10 +72,10 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       whether_re_signup_question
     );
     if (!answer || answer.preitter_answer == '否') {
-      return '取消报名';
+      return '取消重新报名';
     }
     await cancelSignup(ctx, self.id);
-    await session.sendQueued('已取消报名', config.message_interval);
+    await session.sendQueued('已取消上一次的报名', config.message_interval);
   }
 
   const self_signups = await selectAllCanceledSignupByTeamNameAndUserId(
