@@ -5,7 +5,8 @@ import {
   checkDetailHandler,
   exportHandler,
   closeSignupHandler,
-  pushMessageToAllSignup
+  pushMessageToAllSignup,
+  atUserByName
 } from './service/managerService';
 import {
   applyHandler,
@@ -79,6 +80,14 @@ export function commandSetup(ctx: Context, config: Config) {
     })
     .action(async argv => {
       return await pushMessageToAllSignup(ctx, config, argv);
+    });
+
+  leader_command
+    .subcommand('查找 <...rest:string>', {
+      permissions: ['raid-helper:leader']
+    })
+    .action(async (argv, ...rest) => {
+      return await atUserByName(ctx, config, argv, rest);
     });
 
   // 报名者操作，仅私聊

@@ -16,6 +16,7 @@ import {
 } from '../dao/teamDAO';
 import { selectValidSignupByTeamName } from '../dao/signupDAO';
 import { parseAnswerMap } from '../utils/question';
+import Fuse from 'fuse.js';
 
 // 指挥开团
 const openTeamHandler = async (
@@ -195,11 +196,54 @@ const pushMessageToAllSignup = async (
   return '推送消息成功';
 };
 
+const atUserByName = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv,
+  user_names: string[]
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  if (!session.guild) {
+    return '请在群聊中使用';
+  }
+  if (user_names.length == 0) {
+    return '请输入要查找的用户';
+  }
+  const team = await selectCurrentTeam(ctx, config, session);
+  const team_name = team.team_name;
+  const sign_up = await selectValidSignupByTeamName(ctx, team_name);
+  if (!sign_up || sign_up.length == 0) {
+    return '当前报名人数为: 0';
+  }
+  const users = sign_up.map(s => {
+    const content = parseAnswerMap(s.content);
+    const nickname = content.get('NICKNAME')?.preitter_answer;
+    return {
+      user_id: s.user_id,
+      nickname
+    };
+  });
+  const fuse = new Fuse(users, {
+    includeScore: true,
+    shouldSort: true,
+    keys: ['nickname']
+  });
+  const user_ids = user_names.map(user_name => {
+    const result = fuse.search(user_name);
+    logger.debug('search result: {}', result);
+    return result[0].item.user_id;
+  });
+  const message = user_ids.map(user_id => h('at', { id: user_id })).join(' ');
+  await session.sendQueued(message, config.message_interval);
+};
+
 export {
   openTeamHandler,
   closeSignupHandler,
   checkNowHandler,
   checkDetailHandler,
   exportHandler,
-  pushMessageToAllSignup
+  pushMessageToAllSignup,
+  atUserByName
 };
