@@ -231,7 +231,7 @@ const atUserByName = async (
   });
   const user_ids = user_names.map(user_name => {
     const result = fuse.search(user_name);
-    logger.debug('search result: {}', result);
+    logger.debug('search result:', result);
     return result[0].item.user_id;
   });
   const message = user_ids.map(user_id => h('at', { id: user_id })).join(' ');
