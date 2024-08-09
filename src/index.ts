@@ -14,7 +14,7 @@ export const name = 'ffxiv-raid-helper';
 
 // 前置服务
 export const inject = {
-  required: ['database', 'assets', 'cron']
+  required: ['database', 'cron']
 };
 
 // 重新导出配置
