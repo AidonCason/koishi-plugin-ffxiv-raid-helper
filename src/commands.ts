@@ -30,6 +30,8 @@ export function commandSetup(ctx: Context, config: Config) {
     .command('ffxiv-raid-helper.leader', {
       permissions: ['raid-helper:leader']
     });
+
+  // 开团
   leader_command
     .subcommand('开团 <raid_name:string> <raid_time:date>', '开启一个新团', {
       permissions: ['raid-helper:leader']
@@ -38,6 +40,8 @@ export function commandSetup(ctx: Context, config: Config) {
     .action(async (argv, raid_name: string, raid_time: Date) => {
       return await openTeamHandler(ctx, config, argv, raid_name, raid_time);
     });
+
+  // 关闭报名
   leader_command
     .subcommand('关闭报名', '提前关闭报名', {
       permissions: ['raid-helper:leader']
@@ -46,6 +50,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await closeSignupHandler(ctx, config, argv);
     });
 
+  // 查看当前团
   leader_command
     .subcommand('查看当前团', '查看当前所有开启中的团', {
       permissions: ['raid-helper:leader']
@@ -54,6 +59,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await checkNowHandler(ctx, config, argv);
     });
 
+  // 查看报名情况
   leader_command
     .subcommand('查看报名状况', '查看单个团的报名详情列表', {
       permissions: ['raid-helper:leader']
@@ -64,6 +70,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await checkDetailHandler(ctx, config, argv);
     });
 
+  // 导出报名情况
   leader_command
     .subcommand('导出报名状况', '导出单个团的报名详情列表', {
       permissions: ['raid-helper:leader']
@@ -74,6 +81,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await exportHandler(ctx, config, argv);
     });
 
+  // 推送消息
   leader_command
     .subcommand('推送消息', '向所有报名者推送消息', {
       permissions: ['raid-helper:leader']
@@ -82,6 +90,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await pushMessageToAllSignup(ctx, config, argv);
     });
 
+  // 找人
   leader_command
     .subcommand('找人 <...rest:string>', {
       permissions: ['raid-helper:leader']
@@ -97,6 +106,7 @@ export function commandSetup(ctx: Context, config: Config) {
       permissions: ['raid-helper:user']
     });
 
+  // 报名
   user_command
     .subcommand('报名', {
       permissions: ['raid-helper:user']
@@ -105,6 +115,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await applyHandler(ctx, config, argv);
     });
 
+  // 查看报名
   user_command
     .subcommand('查看报名', {
       permissions: ['raid-helper:user']
@@ -113,6 +124,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await checkSelfHandler(ctx, config, argv);
     });
 
+  // 取消报名
   user_command
     .subcommand('取消报名', {
       permissions: ['raid-helper:user']
@@ -121,6 +133,7 @@ export function commandSetup(ctx: Context, config: Config) {
       return await cancelSignupHandler(ctx, config, argv);
     });
 
+  // 联系指挥
   user_command
     .subcommand('联系指挥', {
       permissions: ['raid-helper:user']
