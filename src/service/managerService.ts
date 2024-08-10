@@ -100,23 +100,21 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return '当前报名人数为: 0';
   }
   const map = parseAnswerMap(sign_up[0].content);
-  const title =
-    Array.from(map.entries())
-      .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
-      .map(entry => entry[1].name)
-      .join(',') +
-    '\n' +
-    sign_up
-      .map(s =>
-        Array.from(parseAnswerMap(s.content))
-          .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
-          .map(entry => entry[1].preitter_answer)
-          .join(',')
-      )
-      .join('\n');
+  const title = Array.from(map.entries())
+    .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
+    .map(entry => entry[1].name)
+    .join(',');
+  const content = sign_up
+    .map(s =>
+      Array.from(parseAnswerMap(s.content))
+        .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
+        .map(entry => entry[1].preitter_answer)
+        .join(',')
+    )
+    .join('\n');
   // 导出格式为utf8withBOM的csv
   // 为了兼容excel
-  const buffer = iconv.encode(title, 'utf8', {
+  const buffer = iconv.encode(`${title}\n${content}`, 'utf8', {
     addBOM: true
   });
 
@@ -135,7 +133,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   await fs.writeFile(file_path, buffer);
   if (session.platform && session.platform == 'onebot') {
     const file_path = pathToFileURL(path.resolve(root, file_name)).href;
-    logger.debug('to send:{}', file_path);
+    logger.debug('to send:', file_path);
     if (session.isDirect) {
       await session.onebot.sendPrivateMsg(session.userId, [
         {
