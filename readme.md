@@ -1,6 +1,6 @@
 # koishi-plugin-ffxiv-raid-helper
 
-[![npm](https://img.shields.io/npm/v/koishi-plugin-ffxiv-raid-helper?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-ffxiv-raid-helper)
+[![npm](https://img.shields.io/npm/v/koishi-plugin-ffxiv-raid-helper?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-ffxiv-raid-helper)[![Build And Pubish](https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper/actions/workflows/npm-publish.yml)
 
 ff14拼团小助手
 
