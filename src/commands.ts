@@ -83,7 +83,7 @@ export function commandSetup(ctx: Context, config: Config) {
     });
 
   leader_command
-    .subcommand('查找 <...rest:string>', {
+    .subcommand('找人 <...rest:string>', {
       permissions: ['raid-helper:leader']
     })
     .action(async (argv, ...rest) => {
