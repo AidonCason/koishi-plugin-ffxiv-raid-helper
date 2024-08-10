@@ -20,7 +20,8 @@
   },
   "contributors": [
     {
-      "name": "Autumn Sound"
+      "name": "Autumn Sound",
+      "email": "qjm1412@163.com"
     }
   ],
   "homepage": "https://github.com/AidonCason/koishi-plugin-ffxiv-raid-helper",
@@ -32,15 +33,17 @@
     "fuse.js": "^7.0.0",
     "iconv-lite": "^0.6.2",
     "koishi": "^4.17.10",
-    "koishi-plugin-adapter-onebot": "^6.5.8",
-    "koishi-plugin-cron": "^3.1.0"
+    "koishi-plugin-adapter-onebot": "^6.5.8"
   },
   "koishi": {
     "description": {
-      "zh": "ff14拼团小助手"
+      "zh": "最终幻想14高难组团助手（目前主要用于国服零式女王古殿）"
     },
     "service": {
-      "required": [],
+      "required": [
+        "database",
+        "cron"
+      ],
       "optional": [],
       "implements": []
     },
