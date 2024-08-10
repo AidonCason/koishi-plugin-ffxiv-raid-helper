@@ -1,6 +1,6 @@
 import { Argv, Context, h } from 'koishi';
 import { date_locale_options, locale_settings } from '../utils/locale';
-import {} from 'koishi-plugin-adapter-onebot';
+import { CQCode } from 'koishi-plugin-adapter-onebot';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import * as fs from 'fs/promises';
@@ -119,50 +119,38 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   });
 
   const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
-  const file_name =
-    team_name +
-    '-' +
-    team.raid_start_time
-      .toLocaleString(locale_settings.current, date_locale_options)
-      .replaceAll('/', '')
-      .replaceAll(' ', '')
-      .replaceAll(':', '') +
-    '.csv';
+  const export_time = new Date()
+    .toLocaleString(locale_settings.current, date_locale_options)
+    .replaceAll('/', '')
+    .replaceAll(' ', '')
+    .replaceAll(':', '');
+  const file_name = `${team_name}-${export_time}.csv`;
   const file_path = path.join(root, file_name);
   await fs.mkdir(root, { recursive: true });
   await fs.writeFile(file_path, buffer);
   if (session.platform && session.platform == 'onebot') {
     const file_path = pathToFileURL(path.resolve(root, file_name)).href;
     logger.debug('to send:', file_path);
+    const file: CQCode = {
+      type: 'file',
+      data: {
+        file: file_path,
+        name: file_name
+      }
+    };
     if (session.isDirect) {
-      await session.onebot.sendPrivateMsg(session.userId, [
-        {
-          type: 'file',
-          data: {
-            file: file_path,
-            name: file_name
-          }
-        }
-      ]);
+      await session.onebot.sendPrivateMsg(session.userId, [file]);
     } else {
-      await session.onebot.sendGroupMsg(session.channelId, [
-        {
-          type: 'file',
-          data: {
-            file: file_path,
-            name: file_name
-          }
-        }
-      ]);
+      await session.onebot.sendGroupMsg(session.channelId, [file]);
     }
   } else if (session.platform && session.platform == 'slack') {
-    const h_file = h.image(pathToFileURL(path.resolve(root, file_name)).href);
-
+    const h_file = h.file(pathToFileURL(path.resolve(root, file_name)).href);
     logger.debug(h_file);
     await session.sendQueued(h_file, config.message_interval);
+  } else {
+    logger.warn('尚不支持的导出平台');
   }
-  logger.warn('尚不支持的导出平台');
-  session.sendQueued('导出结束', config.message_interval);
+  return '导出结束';
 };
 
 const pushMessageToAllSignup = async (
@@ -186,6 +174,7 @@ const pushMessageToAllSignup = async (
         const message = session.onebot.message;
         await session.onebot.sendPrivateMsg(user_id, message);
       } else {
+        logger.warn('尚不支持的推送平台');
         const message = argv.args.join(' ');
         await session.sendQueued(message, config.message_interval);
       }
@@ -222,6 +211,7 @@ const atUserByName = async (
       nickname
     };
   });
+  // 使用fuse进行模糊搜索
   const fuse = new Fuse(users, {
     includeScore: true,
     shouldSort: true,
@@ -232,8 +222,7 @@ const atUserByName = async (
     logger.debug('search result:', result);
     return result[0].item.user_id;
   });
-  const message = user_ids.map(user_id => h('at', { id: user_id })).join(' ');
-  await session.sendQueued(message, config.message_interval);
+  return user_ids.map(user_id => h('at', { id: user_id })).join(' ');
 };
 
 export {

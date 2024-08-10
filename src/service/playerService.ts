@@ -1,4 +1,4 @@
-import { Context, Argv, Session } from 'koishi';
+import { Context, Argv } from 'koishi';
 import { Config } from '../config/settings';
 import { ErrorCode } from '../constant/common';
 import { sendNotice } from './noticeService';
@@ -19,26 +19,11 @@ import {
 } from '../dao/signupDAO';
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion, parseAnswerMap } from '../utils/question';
-import { getUserGroups } from '../utils/group';
-
-const checkUserIsInGroup = async (session: Session, config: Config) => {
-  const userGroups = await getUserGroups(session, config);
-
-  if (userGroups.size == 0) {
-    logger.warn(`user ${session.userId} not in any group`);
-    return false;
-  }
-  return true;
-};
 
 const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
-  if (!(await checkUserIsInGroup(session, config))) {
-    return '请先加群再报名';
-  }
   const team = await selectCurrentTeam(ctx, config, session);
-  if (!team) return;
   if (!team.allow_sign_up) {
     return '该团已关闭报名！';
   }
@@ -49,17 +34,12 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (now > deadline) {
     return '开团前24小时截止报名，如有特殊情况请联系指挥';
   }
-
   const team_name = team.team_name;
-
   const sign_ups = await selectValidSignupByTeamName(ctx, team_name);
   const self = sign_ups.find(s => s.user_id == session.userId);
-  // 报名满了，且非重新报名
-  if (!self && sign_ups && sign_ups.length >= team.max_members) {
-    return '已经报名满了，请下次再来或查看其他团';
-  }
   logger.debug('self:', self);
-  if (self && self.content != '') {
+  // 报名过了，询问是否重新报名
+  if (self) {
     const whether_re_signup_question: Question = buildQuestion({
       label: 'whether_re_signup',
       type: QuestionType.Boolean,
@@ -76,8 +56,14 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     }
     await cancelSignup(ctx, self.id);
     await session.sendQueued('已取消上一次的报名', config.message_interval);
+  } else {
+    // 报名满了，且非重新报名
+    if (sign_ups && sign_ups.length >= team.max_members) {
+      return '已经报名满了，请下次再来或查看其他团';
+    }
   }
-
+  // 开始报名了
+  // 检查取消报名次数
   const self_signups = await selectAllCanceledSignupByTeamNameAndUserId(
     ctx,
     team_name,
@@ -86,11 +72,12 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (self_signups && self_signups.length > 3) {
     return '取消报名过多，无法重新报名，如有需要请联系指挥说明';
   }
+  // 开始问问题
   const sheet = [...getSheet(team, config)].reverse();
   const results: Map<string, Answer> = new Map();
   while (sheet.length > 0) {
-    const q = sheet.pop();
-    const res_code = await onQuestion(config, session, q, results);
+    const question = sheet.pop();
+    const res_code = await onQuestion(config, session, question, results);
     if (res_code == ErrorCode.MaxRetry) {
       return '失败次数过多，报名退出';
     }
@@ -98,6 +85,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       return '输入超时，报名结束';
     }
   }
+  // 把报名用的qq填上
   results.set('CONTACT_QQ_FETCHED', {
     label: 'CONTACT_QQ_FETCHED',
     name: 'QQ(报名使用)',
@@ -108,21 +96,24 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     r.name,
     r.preitter_answer
   ]);
+  // 保存到数据库
+  await createSignup(
+    ctx,
+    team_name,
+    session.userId,
+    JSON.stringify(Array.from(results))
+  );
+  // 给报名者展示一下
+  await session.sendQueued(
+    output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
+  );
+  // 发送通知
   sendNotice(
     ctx,
     config,
     session.bot,
     team_name,
     `${team_name} 收到来自${session.userId}的一份新的报名表`
-  );
-  await session.sendQueued(
-    output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
-  );
-  await createSignup(
-    ctx,
-    team_name,
-    session.userId,
-    JSON.stringify(Array.from(results))
   );
   return '报名提交成功!请关注群公告里面的报名结果~';
 };
@@ -131,9 +122,7 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  if (!team) return;
   const team_name = team.team_name;
-
   const sign_up = await selectAllValidSignupByTeamNameAndUserId(
     ctx,
     team_name,
@@ -159,9 +148,7 @@ const cancelSignupHandler = async (
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  if (!team) return;
   const team_name = team.team_name;
-
   const sign_ups = await selectAllValidSignupByTeamNameAndUserId(
     ctx,
     team_name,
@@ -191,7 +178,6 @@ const contactLeaderHandler = async (
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  if (!team) return;
   return '指挥的联系方式为：qq： ' + team.team_leader;
 };
 
