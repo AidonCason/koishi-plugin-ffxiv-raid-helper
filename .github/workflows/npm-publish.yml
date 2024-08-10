@@ -7,19 +7,17 @@ on:
       - 'v*'
 
 jobs:
-  set-up-node:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
   build-and-publish:
     runs-on: ubuntu-latest
-    needs: set-up-node
     steps:
       - name: check-out
         uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
 
       - name: Install
         shell: bash
@@ -34,7 +32,6 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cat package.json
           echo "require:
           - esbuild-register
           - yakumo-esbuild
@@ -49,14 +46,8 @@ jobs:
               - esbuild" > yakumo.yml
           yarn yakumo build
 
-      - name: Set npm token
-        shell: bash
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_KOISHI }}" > ~/.npmrc
-
       - name: Publish package
         shell: bash
-        run: |
-          PUB_OUT=$(yarn yakumo publish --debug 2>&1)
-          echo $PUB_OUT
-          echo $PUB_OUT | grep -q '1 packages'
-          
+        run: yarn yakumo publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_KOISHI }}
