@@ -168,16 +168,10 @@ const pushMessageToAllSignup = async (
   }
   await session.sendQueued('请输入要推送的消息', config.message_interval);
   await session.prompt(async session => {
+    logger.debug('content:', session.content);
     sign_up.forEach(async s => {
-      const user_id = s.user_id;
-      if (session.platform == 'onebot') {
-        const message = session.onebot.message;
-        await session.onebot.sendPrivateMsg(user_id, message);
-      } else {
-        logger.warn('尚不支持的推送平台');
-        const message = argv.args.join(' ');
-        await session.sendQueued(message, config.message_interval);
-      }
+      logger.debug('send to:', s.user_id);
+      session.bot.sendPrivateMessage(s.user_id, session.content);
     });
   });
   return '推送消息成功';
