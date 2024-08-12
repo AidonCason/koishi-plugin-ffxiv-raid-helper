@@ -6,7 +6,6 @@ import { selectByDateBetween } from '../dao/teamDAO';
 import { selectValidSignupByTeamName } from '../dao/signupDAO';
 import { getNoticeGroups, getNoticeUsers } from '../utils/group';
 
-// TODO: 如果后面风控高的话要把好友列表和群组列表缓存
 const noticeToPrivage = async (
   ctx: Context,
   config: Config,
@@ -17,7 +16,6 @@ const noticeToPrivage = async (
   if (bot.platform! in ['onebot', 'sandbox']) {
     return '该平台不支持私信';
   }
-
   const one = (await bot.getFriendList()).data.find(
     friend => friend.id == user_id
   );
@@ -38,7 +36,6 @@ const noticeToGroup = async (
   if (bot.platform! in ['onebot', 'sandbox']) {
     return '该平台不支持群聊推送';
   }
-
   const one = (await bot.getGuildList()).data.find(g => g.id == group_id);
   if (!one) {
     logger.warn(`要推送的群组${group_id}不是bot:${bot.selfId}的群组`);
@@ -48,20 +45,16 @@ const noticeToGroup = async (
 };
 
 const noticeOneDayBefore = async (ctx: Context, config: Config) => {
-  logger.info('noticeOneDayBefore...');
   const begin_time = new Date();
   begin_time.setDate(begin_time.getDate() + 1);
   const end_time = new Date(begin_time);
-  end_time.setMinutes(end_time.getMinutes() + 5);
   return await noticeBefore(ctx, config, begin_time, end_time);
 };
 
 const noticeTwoHoursBefore = async (ctx: Context, config: Config) => {
-  logger.info('noticeTwoHoursBefore...');
   const begin_time = new Date();
   begin_time.setHours(begin_time.getHours() + 2);
   const end_time = new Date(begin_time);
-  end_time.setMinutes(end_time.getMinutes() + 5);
   return await noticeBefore(ctx, config, begin_time, end_time);
 };
 
@@ -82,26 +75,18 @@ const noticeBefore = async (
 
   teamList.forEach(async e => {
     const msg = `团 ${e.team_name} 将于 ${e.raid_start_time.toLocaleString(locale_settings.current)} 发车`;
-    logger.info(msg);
+    logger.info(`推送消息：${msg}`);
 
-    try {
-      // TODO: 这里应该只推送给大群吧，小群的话就不推送了
-      const groups = await getNoticeGroups(ctx, config, e.team_name);
-      groups.forEach(g => {
-        noticeToGroup(ctx, config, bot, g, msg);
-      });
-    } catch (e) {
-      logger.error(e);
-    }
+    // TODO: 这里应该只推送给大群吧，小群的话就不推送了
+    const groups = await getNoticeGroups(ctx, config, e.team_name);
+    groups.forEach(g => {
+      noticeToGroup(ctx, config, bot, g, msg);
+    });
 
-    try {
-      const sign_ups = await selectValidSignupByTeamName(ctx, e.team_name);
-      sign_ups.forEach(async s => {
-        noticeToPrivage(ctx, config, bot, s.user_id, msg);
-      });
-    } catch (e) {
-      logger.error(e);
-    }
+    const sign_ups = await selectValidSignupByTeamName(ctx, e.team_name);
+    sign_ups.forEach(async s => {
+      noticeToPrivage(ctx, config, bot, s.user_id, msg);
+    });
   });
 };
 
