@@ -178,7 +178,7 @@ const contactLeaderHandler = async (
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  return '指挥的联系方式为：qq： ' + team.team_leader;
+  return `${team.group_name} ${team.team_name} 的指挥联系方式为：qq： ${team.team_leader}`;
 };
 
 export {
