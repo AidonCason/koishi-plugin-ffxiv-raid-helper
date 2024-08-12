@@ -44,14 +44,14 @@ export const getSheet = (
       label: 'NICKNAME',
       type: QuestionType.Text,
       name: '角色姓名',
-      content: '角色姓名'
+      content: '角色名字（须与角色名字完全一致，并区分大小写）'
     },
-    {
-      label: 'CONTACT_QQ',
-      type: QuestionType.Text,
-      name: 'QQ(问卷填写)',
-      content: 'QQ'
-    },
+    // {
+    //   label: 'CONTACT_QQ',
+    //   type: QuestionType.Text,
+    //   name: 'QQ(问卷填写)',
+    //   content: 'QQ'
+    // },
     {
       label: 'DYNAMIC_DUTY',
       type: QuestionType.Boolean,
@@ -151,7 +151,8 @@ export const getSheet = (
       name: '留言',
       type: QuestionType.Text,
       content:
-        '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~(没有的话输入任意内容)'
+        '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~(没有的话输入任意内容)',
+      allow_empty: true
     }
   ];
   return questions.map(question => buildQuestion(question));
