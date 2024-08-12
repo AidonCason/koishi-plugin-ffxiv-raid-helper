@@ -13,6 +13,7 @@ export interface Config {
       ignore_server: boolean;
     };
   };
+  friend_request_auto_accept: boolean;
 }
 
 // 正则表达式：内容不为空且前后没有空格
@@ -24,7 +25,10 @@ export const Config: Schema<Config> = Schema.intersect([
       .default(3 * Time.second)
       .min(0 * Time.second)
       .step(Time.second)
-      .description('每轮消息发送间隔，单位毫秒')
+      .description('每轮消息发送间隔，单位毫秒'),
+    friend_request_auto_accept: Schema.boolean()
+      .default(true)
+      .description('自动接受来自群内的好友请求')
   }).description('基础设置'),
   Schema.object({
     region_server_map: Schema.dict(

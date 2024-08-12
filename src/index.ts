@@ -8,6 +8,7 @@ import {
 } from './service/noticeService';
 import { commandSetup } from './commands';
 import { permissionsSetup } from './permissions';
+import logger from './utils/logger';
 
 // 插件名
 export const name = 'ffxiv-raid-helper';
@@ -31,4 +32,14 @@ export function apply(ctx: Context, config: Config) {
 
   permissionsSetup(ctx, config);
   commandSetup(ctx, config);
+
+  ctx.on('friend-request', async session => {
+    if (
+      config.friend_request_auto_accept &&
+      (await ctx.permissions.test(['raid-helper:user'], session))
+    ) {
+      logger.debug('accept friend request');
+      await session.bot.handleFriendRequest(session.messageId, true);
+    }
+  });
 }

@@ -20,7 +20,6 @@ export function permissionsSetup(ctx: Context, config: Config) {
   });
 
   ctx.permissions.provide('raid-helper:user', async (_, session) => {
-    if (!session.isDirect) return true;
     if (session.platform !== 'onebot') return false;
 
     const userId = session.userId;
@@ -39,10 +38,12 @@ export function permissionsSetup(ctx: Context, config: Config) {
           chat_group.group_id
         );
         if (member_list.map(m => m.user_id.toString()).includes(userId)) {
+          logger.debug(`user ${userId} in group ${chat_group.group_id}`);
           return true;
         }
       }
     }
+    logger.debug(`user ${userId} not in any group`);
     return false;
   });
 }
