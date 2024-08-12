@@ -1,4 +1,4 @@
-import { Context, Session } from 'koishi';
+import { Context, Session, SessionError } from 'koishi';
 import { TeamListTable } from '../constant/db';
 import { Config } from '../config/settings';
 import { selectByDateAfterAndGroupName } from '../dao/teamDAO';
@@ -75,7 +75,7 @@ export const selectGroupName = async (
   });
   const answer = await askOneQuestion(config, session, group_choice_question);
   if (!answer) {
-    throw new Error('未选择团');
+    throw new SessionError('未选择团');
   }
   return answer.preitter_answer;
 };
@@ -92,8 +92,7 @@ export const selectCurrentTeam = async (
     group_name
   );
   if (!teams || teams.length == 0) {
-    await session.sendQueued('未查询到当前有队伍', config.message_interval);
-    throw new Error('未查询到当前有队伍');
+    throw new SessionError('未查询到当前有队伍');
   }
   if (teams.length == 1) return teams[0];
   const team_infos = await getTeamInfo(ctx, teams);
@@ -106,7 +105,7 @@ export const selectCurrentTeam = async (
   });
   const answer = await askOneQuestion(config, session, select_team_question);
   if (!answer) {
-    throw new Error('未选择队伍');
+    throw new SessionError('未选择队伍');
   }
   return teams[parseInt(answer.answer) - 1];
 };

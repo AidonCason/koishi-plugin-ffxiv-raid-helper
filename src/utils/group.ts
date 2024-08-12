@@ -1,4 +1,4 @@
-import { Context, Session } from 'koishi';
+import { Context, Session, SessionError } from 'koishi';
 import { Config } from '../config/settings';
 import { selectByName } from '../dao/teamDAO';
 import logger from './logger';
@@ -90,7 +90,7 @@ export const getGroupNameByTeamName = async (
 ) => {
   const teams = await selectByName(ctx, team_name);
   if (teams.length == 0) {
-    throw new Error('未查询到该团');
+    throw new SessionError('未查询到该团');
   }
   return teams[0].group_name;
 };
