@@ -16,8 +16,14 @@ import {
 } from './service/playerService';
 import { Context } from 'koishi';
 import { checkLeaderPermission, getAllChatGroups } from './utils/group';
+import {} from '@koishijs/plugin-help';
+
 export function commandSetup(ctx: Context, config: Config) {
-  ctx.command('ffxiv-raid-helper', '最终幻想14高难组团管理助手');
+  ctx
+    .command('ffxiv-raid-helper', '最终幻想14高难组团管理助手')
+    .action(async argv => {
+      await argv.session.execute('ffxiv-raid-helper.help');
+    });
 
   // 指挥操作 仅限在配置的群内或指挥私聊
   const leader_command = ctx
@@ -37,6 +43,8 @@ export function commandSetup(ctx: Context, config: Config) {
       permissions: ['raid-helper:leader']
     })
     .example('开团 114团 2024-01-01T20:00')
+    .example('开团 114团 2024-01-01 20:00')
+    .example('开团 114团 2024 01 01 20:00')
     .action(async (argv, raid_name: string, raid_time: Date) => {
       return await openTeamHandler(ctx, config, argv, raid_name, raid_time);
     });
@@ -99,6 +107,7 @@ export function commandSetup(ctx: Context, config: Config) {
         permissions: ['raid-helper:leader']
       }
     )
+    .example('找人 杂鱼 杂鱼杂鱼')
     .action(async (argv, ...rest) => {
       return await atUserByName(ctx, config, argv, rest);
     });
@@ -112,7 +121,7 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 报名
   user_command
-    .subcommand('报名', {
+    .subcommand('报名', '报名参加当前团', {
       permissions: ['raid-helper:user']
     })
     .action(async argv => {
@@ -121,7 +130,7 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 查看报名
   user_command
-    .subcommand('查看报名', {
+    .subcommand('查看报名', '查看自己的报名情况', {
       permissions: ['raid-helper:user']
     })
     .action(async argv => {
@@ -130,7 +139,7 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 取消报名
   user_command
-    .subcommand('取消报名', {
+    .subcommand('取消报名', '取消自己的报名', {
       permissions: ['raid-helper:user']
     })
     .action(async argv => {
@@ -139,10 +148,15 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 联系指挥
   user_command
-    .subcommand('联系指挥', {
+    .subcommand('联系指挥', '联系当前团的指挥', {
       permissions: ['raid-helper:user']
     })
     .action(async argv => {
       return await contactLeaderHandler(ctx, config, argv);
     });
+
+  ctx.command('ffxiv-raid-helper.help', '查看帮助').action(async argv => {
+    await argv.session.execute('ffxiv-raid-helper.leader --help');
+    await argv.session.execute('ffxiv-raid-helper.user --help');
+  });
 }
