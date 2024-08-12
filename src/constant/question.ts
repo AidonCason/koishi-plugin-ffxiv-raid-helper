@@ -61,6 +61,10 @@ interface IBaseQuestion {
    * 跳过问题，如果返回true则跳过
    */
   skip?: (input: AnswerMap) => boolean;
+  /**
+   * 允许为空，超时时会留空而不是提示重新输入
+   */
+  allow_empty?: boolean;
 }
 
 export interface ITextQuestion extends IBaseQuestion {
@@ -140,6 +144,10 @@ export abstract class Question {
    * 跳过问题，如果返回true则跳过
    */
   skip: (input: AnswerMap) => boolean = () => false;
+  /**
+   * 允许为空，超时时会留空而不是提示重新输入
+   */
+  allow_empty?: boolean;
 }
 
 export class TextQuestion extends Question implements ITextQuestion {

@@ -29,7 +29,19 @@ export const onQuestion = async (
     config.message_interval
   );
   const res_accept = await session.prompt();
-  if (!res_accept) return ErrorCode.Timeout;
+  if (!res_accept) {
+    if (question.allow_empty) {
+      // 允许为空超时存入空白答案
+      results.set(question.label, {
+        label: question.label,
+        name: question.name,
+        answer: '',
+        preitter_answer: ''
+      });
+      return ErrorCode.OK;
+    }
+    return ErrorCode.Timeout;
+  }
 
   if (!question.accept_answer(res_accept, results)) {
     await session.sendQueued('输入不合法，请重新输入', config.message_interval);
