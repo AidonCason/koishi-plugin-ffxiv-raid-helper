@@ -92,9 +92,13 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 找人
   leader_command
-    .subcommand('找人 <...rest:string>', {
-      permissions: ['raid-helper:leader']
-    })
+    .subcommand(
+      '找人 <...rest:string>',
+      '@指定用户，使用模糊搜索，多个成员以空格分隔',
+      {
+        permissions: ['raid-helper:leader']
+      }
+    )
     .action(async (argv, ...rest) => {
       return await atUserByName(ctx, config, argv, rest);
     });
