@@ -10,8 +10,8 @@ export const sign_up_table_name = `${table_prefix}sign_up`;
 
 declare module 'koishi' {
   interface Tables {
-    ffxiv_raid_helper_team: TeamListTable;
-    ffxiv_raid_helper_sign_up: TeamSignUpTable;
+    [team_table_name]: TeamListTable;
+    [sign_up_table_name]: TeamSignUpTable;
   }
 }
 
@@ -58,7 +58,6 @@ export function dbSetup(ctx: Context) {
     {
       primary: 'id',
       unique: ['team_name'],
-      foreign: null,
       autoInc: true
     }
   );
@@ -79,7 +78,6 @@ export function dbSetup(ctx: Context) {
     },
     {
       primary: 'id',
-      foreign: null,
       autoInc: true
     }
   );

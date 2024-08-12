@@ -1,6 +1,6 @@
 import { Config } from '../config/settings';
 import { TeamListTable } from './db';
-import { buildQuestion, QuestionDefine, QuestionType } from './question';
+import { buildQuestion, IQuestion, Question, QuestionType } from './question';
 
 export const duties: Readonly<Record<string, ReadonlyArray<string>>> = {
   坦克: ['骑士', '战士', '黑骑', '绝枪'],
@@ -11,8 +11,11 @@ export const duties: Readonly<Record<string, ReadonlyArray<string>>> = {
   全能: []
 };
 
-export const getSheet = (raid: TeamListTable, config: Config) => {
-  const questions: ReadonlyArray<QuestionDefine> = [
+export const getSheet = (
+  raid: TeamListTable,
+  config: Config
+): ReadonlyArray<Question> => {
+  const questions: IQuestion[] = [
     // {
     //   label: '0',
     //   content:
@@ -35,13 +38,7 @@ export const getSheet = (raid: TeamListTable, config: Config) => {
       type: QuestionType.SignleChoice,
       name: '所在服务器',
       content: '所在服务器',
-      construct_range: () =>
-        new Map(
-          config.region_server_map[raid.team_region].map((server, idx) => [
-            (idx + 1).toString(),
-            server
-          ])
-        )
+      answer_range_desc: config.region_server_map[raid.team_region]
     },
     {
       label: 'NICKNAME',
@@ -157,7 +154,5 @@ export const getSheet = (raid: TeamListTable, config: Config) => {
         '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~(没有的话输入任意内容)'
     }
   ];
-  return questions.map(question => buildQuestion(question)) as ReadonlyArray<
-    ReturnType<typeof buildQuestion>
-  >;
+  return questions.map(question => buildQuestion(question));
 };
