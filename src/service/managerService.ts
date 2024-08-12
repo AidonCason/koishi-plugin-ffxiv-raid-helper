@@ -63,11 +63,10 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const teams = await selectByDateAfter(ctx, new Date());
   const team_infos = await getTeamInfo(ctx, teams);
-  if (team_infos) {
-    return '当前有如下团:\n' + team_infos.join('\n');
-  } else {
+  if (!team_infos || team_infos.length == 0) {
     return '未查询到当前有团';
   }
+  return '当前有如下团:\n' + team_infos.join('\n');
 };
 
 const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
