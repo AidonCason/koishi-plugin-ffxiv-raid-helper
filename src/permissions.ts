@@ -20,8 +20,6 @@ export function permissionsSetup(ctx: Context, config: Config) {
   });
 
   ctx.permissions.provide('raid-helper:user', async (_, session) => {
-    if (session.platform !== 'onebot') return false;
-
     const userId = session.userId;
     for (const [, group] of Object.entries(config.group_config_map)) {
       for (const chat_group of group.chat_groups) {

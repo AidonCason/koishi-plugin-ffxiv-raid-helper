@@ -67,11 +67,7 @@ const noticeBefore = async (
   const teamList = await selectByDateBetween(ctx, begin_time, end_time);
 
   if (teamList.length == 0) return;
-  const bot = ctx.bots.find(bot => bot.platform == 'onebot');
-  if (!bot || !bot.isActive) {
-    logger.warn('找不到onebot机器人，无法推送私信');
-    return;
-  }
+  const bot = ctx.bots.find(bot => bot.isActive);
 
   teamList.forEach(async e => {
     const msg = `团 ${e.team_name} 将于 ${e.raid_start_time.toLocaleString(locale_settings.current)} 发车`;

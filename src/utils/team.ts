@@ -45,12 +45,14 @@ export const selectGroupName = async (
     });
   }
   // 从member查找
-  if (group_name_set.size == 0 && session.platform == 'onebot') {
+  if (group_name_set.size == 0) {
     for (const [group_name, group] of Object.entries(config.group_config_map)) {
-      const member_list = await session.onebot.getGroupMemberList(
+      const member_list = await session.bot.getGuildMemberList(
         group.chat_groups[0].group_id
       );
-      if (member_list.map(m => m.user_id.toString()).includes(session.userId)) {
+      if (
+        member_list.data.map(m => m.user.id.toString()).includes(session.userId)
+      ) {
         group_name_set.add(group_name);
       }
     }

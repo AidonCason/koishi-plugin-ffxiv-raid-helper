@@ -135,18 +135,17 @@ export const getNoticeGroups = async (
  */
 export const getUserSevers = async (session: Session, config: Config) => {
   if (!session.isDirect) return new Set<string>();
-  if (session.platform != 'onebot') return new Set<string>();
   const userId = session.userId;
   const userSevers = new Set<string>();
   for (const [server_name, group_ids] of getChatGroupMap(config)) {
     for (const group_id of group_ids) {
-      const groupList = await session.onebot.getGroupList();
-      if (!groupList.map(g => g.group_id.toString()).includes(group_id)) {
+      const groupList = await session.bot.getGuildList();
+      if (!groupList.data.map(g => g.id.toString()).includes(group_id)) {
         logger.warn(`group ${group_id} not exist`);
         continue;
       }
-      const member_list = await session.onebot.getGroupMemberList(group_id);
-      if (member_list.map(m => m.user_id.toString()).includes(userId)) {
+      const member_list = await session.bot.getGuildMemberList(group_id);
+      if (member_list.data.map(m => m.user.id.toString()).includes(userId)) {
         userSevers.add(server_name);
       }
     }
@@ -156,22 +155,21 @@ export const getUserSevers = async (session: Session, config: Config) => {
 
 export const getUserGroups = async (session: Session, config: Config) => {
   if (!session.isDirect) return new Set<string>();
-  if (session.platform != 'onebot') return new Set<string>();
   const userId = session.userId;
   const userGroups = new Set<string>();
   for (const [group_name, group] of Object.entries(config.group_config_map)) {
     for (const chat_group of group.chat_groups) {
-      const groupList = await session.onebot.getGroupList();
+      const groupList = await session.bot.getGuildList();
       if (
-        !groupList.map(g => g.group_id.toString()).includes(chat_group.group_id)
+        !groupList.data.map(g => g.id.toString()).includes(chat_group.group_id)
       ) {
         logger.warn(`group ${chat_group.group_id} not exist`);
         continue;
       }
-      const member_list = await session.onebot.getGroupMemberList(
+      const member_list = await session.bot.getGuildMemberList(
         chat_group.group_id
       );
-      if (member_list.map(m => m.user_id.toString()).includes(userId)) {
+      if (member_list.data.map(m => m.user.id.toString()).includes(userId)) {
         userGroups.add(group_name);
       }
     }
