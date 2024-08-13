@@ -33,7 +33,7 @@
     "fuse.js": "^7.0.0",
     "iconv-lite": "^0.6.2",
     "koishi": "^4.17.10",
-    "koishi-plugin-adapter-onebot": "^6.5.8"
+    "koishi-plugin-cron": "^3.1.0"
   },
   "koishi": {
     "description": {
@@ -64,7 +64,6 @@
     "globals": "^15.8.0",
     "iconv-lite": "^0.6.2",
     "koishi": "^4.17.10",
-    "koishi-plugin-adapter-onebot": "^6.5.8",
     "koishi-plugin-cron": "^3.1.0",
     "prettier": "^3.3.2",
     "tsx": "^4.15.6",

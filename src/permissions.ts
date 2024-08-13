@@ -25,19 +25,19 @@ export function permissionsSetup(ctx: Context, config: Config) {
     const userId = session.userId;
     for (const [, group] of Object.entries(config.group_config_map)) {
       for (const chat_group of group.chat_groups) {
-        const groupList = await session.onebot.getGroupList();
+        const groupList = await session.bot.getGuildList();
         if (
-          !groupList
-            .map(g => g.group_id.toString())
+          !groupList.data
+            .map(g => g.id.toString())
             .includes(chat_group.group_id)
         ) {
           logger.warn(`group ${chat_group.group_id} not exist`);
           continue;
         }
-        const member_list = await session.onebot.getGroupMemberList(
+        const member_list = await session.bot.getGuildMemberList(
           chat_group.group_id
         );
-        if (member_list.map(m => m.user_id.toString()).includes(userId)) {
+        if (member_list.data.map(m => m.user.id.toString()).includes(userId)) {
           logger.debug(`user ${userId} in group ${chat_group.group_id}`);
           return true;
         }
