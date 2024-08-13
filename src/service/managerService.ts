@@ -1,11 +1,6 @@
 import { Argv, Context, h } from 'koishi';
-import { date_locale_options, locale_settings } from '../utils/locale';
-import { CQCode } from 'koishi-plugin-adapter-onebot';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { pathToFileURL } from 'url';
 import * as iconv from 'iconv-lite';
 import { getTeamInfo, selectGroupName, selectCurrentTeam } from '../utils/team';
 import {
@@ -118,39 +113,9 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const buffer = iconv.encode(`${title}\n${content}`, 'utf8', {
     addBOM: true
   });
-
-  const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
-  const export_time = new Date()
-    .toLocaleString(locale_settings.current, date_locale_options)
-    .replaceAll('/', '')
-    .replaceAll(' ', '')
-    .replaceAll(':', '');
-  const file_name = `${team_name}-${export_time}.csv`;
-  const file_path = path.join(root, file_name);
-  await fs.mkdir(root, { recursive: true });
-  await fs.writeFile(file_path, buffer);
-  if (session.platform && session.platform == 'onebot') {
-    const file_path = pathToFileURL(path.resolve(root, file_name)).href;
-    logger.debug('to send:', file_path);
-    const file: CQCode = {
-      type: 'file',
-      data: {
-        file: file_path,
-        name: file_name
-      }
-    };
-    if (session.isDirect) {
-      await session.onebot.sendPrivateMsg(session.userId, [file]);
-    } else {
-      await session.onebot.sendGroupMsg(session.channelId, [file]);
-    }
-  } else if (session.platform && session.platform == 'slack') {
-    const h_file = h.file(pathToFileURL(path.resolve(root, file_name)).href);
-    logger.debug(h_file);
-    await session.sendQueued(h_file, config.message_interval);
-  } else {
-    logger.warn('尚不支持的导出平台');
-  }
+  const file = h.file(buffer, 'text/csv');
+  file.attrs.name = `${team_name}.csv`;
+  await session.send(file);
   return '导出结束';
 };
 
