@@ -16,7 +16,6 @@ import {
 } from './service/playerService';
 import { Context } from 'koishi';
 import { checkLeaderPermission, getAllChatGroups } from './utils/group';
-import {} from '@koishijs/plugin-help';
 
 export function commandSetup(ctx: Context, config: Config) {
   ctx
