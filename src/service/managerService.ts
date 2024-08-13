@@ -22,11 +22,6 @@ const openTeamHandler = async (
   raid_time: Date
 ) => {
   if (!argv?.session) return;
-
-  if (!team_name || team_name.length <= 0 || !raid_time) {
-    return '名称或日期格式错误！参考：开团 114团 2024-01-01T20:00';
-  }
-
   const session = argv.session;
   const one = await selectByName(ctx, team_name);
   if (one && one.length > 0) {

@@ -44,8 +44,13 @@ export function commandSetup(ctx: Context, config: Config) {
     .example('开团 114团 2024-01-01T20:00')
     .example('开团 114团 2024-01-01 20:00')
     .example('开团 114团 2024 01 01 20:00')
-    .action(async (argv, raid_name: string, raid_time: Date) => {
-      return await openTeamHandler(ctx, config, argv, raid_name, raid_time);
+    .action(async (argv, team_name: string, raid_time: Date) => {
+      if (!team_name || team_name.length <= 0 || !raid_time) {
+        await argv.session.send('参数错误，请检查输入');
+        await argv.session.execute(`${argv.command.name} --help`);
+        return;
+      }
+      return await openTeamHandler(ctx, config, argv, team_name, raid_time);
     });
 
   // 关闭报名
