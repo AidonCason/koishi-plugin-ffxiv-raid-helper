@@ -38,7 +38,7 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 开团
   leader_command
-    .subcommand('开团 <raid_name:string> <raid_time:date>', '开启一个新团', {
+    .subcommand('开团 <team_name:string> <raid_time:date>', '开启一个新团', {
       permissions: ['raid-helper:leader']
     })
     .example('开团 114团 2024-01-01T20:00')

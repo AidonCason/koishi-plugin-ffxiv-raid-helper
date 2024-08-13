@@ -6,12 +6,14 @@ import { getTeamInfo, selectGroupName, selectCurrentTeam } from '../utils/team';
 import {
   closeSignup,
   createTeam,
-  selectByDateAfter,
+  selectByDateAfterAndGroupName,
   selectByName
 } from '../dao/teamDAO';
 import { selectValidSignupByTeamName } from '../dao/signupDAO';
-import { parseAnswerMap } from '../utils/question';
+import { askOneQuestion, parseAnswerMap } from '../utils/question';
 import Fuse from 'fuse.js';
+import { buildQuestion, QuestionType } from '../constant/question';
+import { locale_settings, date_locale_options } from '../utils/locale';
 
 // 指挥开团
 const openTeamHandler = async (
@@ -27,8 +29,25 @@ const openTeamHandler = async (
   if (one && one.length > 0) {
     return '团已经存在！';
   }
+  if (raid_time < new Date()) {
+    return '开团时间不能早于当前时间';
+  }
   const group_name = await selectGroupName(ctx, config, session);
   const region_name = config.group_config_map[group_name].region_name;
+  const confirm_create_question = buildQuestion({
+    label: 'confirm_create',
+    type: QuestionType.Boolean,
+    name: '是否确认开团',
+    content: `是否确认开团 ${group_name} ${team_name} 时间 ${raid_time.toLocaleString(locale_settings.current, date_locale_options)}`
+  });
+  const confirm = await askOneQuestion(
+    config,
+    session,
+    confirm_create_question
+  );
+  if (!confirm || confirm.preitter_answer == '否') {
+    return '取消开团';
+  }
   await createTeam(
     ctx,
     group_name,
@@ -51,7 +70,12 @@ const closeSignupHandler = async (ctx: Context, config: Config, argv: Argv) => {
 
 const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
-  const teams = await selectByDateAfter(ctx, new Date());
+  const group_name = await selectGroupName(ctx, config, argv.session);
+  const teams = await selectByDateAfterAndGroupName(
+    ctx,
+    new Date(),
+    group_name
+  );
   const team_infos = await getTeamInfo(ctx, teams);
   if (!team_infos || team_infos.length == 0) {
     return '未查询到当前有团';
