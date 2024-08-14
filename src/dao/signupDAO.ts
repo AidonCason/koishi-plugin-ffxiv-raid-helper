@@ -116,11 +116,9 @@ export const countByTeamName = async (
   team_name: string
 ): Promise<number> => {
   return await ctx.database
-    .get(sign_up_table_name, {
-      team_name: { $eq: team_name },
-      is_canceled: { $eq: false }
-    })
-    .then(sign_ups => sign_ups.length);
+    .select(sign_up_table_name)
+    .where({ team_name, is_canceled: false })
+    .execute(row => $.count(row.id));
 };
 
 /**
