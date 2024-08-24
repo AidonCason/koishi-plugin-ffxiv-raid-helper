@@ -16,6 +16,8 @@ import {
 } from './service/playerService';
 import { Context } from 'koishi';
 import { checkLeaderPermission, getAllChatGroups } from './utils/group';
+import moment from 'moment';
+import { isValidDate } from './utils/date';
 
 export function commandSetup(ctx: Context, config: Config) {
   ctx
@@ -38,19 +40,22 @@ export function commandSetup(ctx: Context, config: Config) {
 
   // 开团
   leader_command
-    .subcommand('开团 <team_name:string> <raid_time:date>', '开启一个新团', {
+    .subcommand('开团 <team_name:string> <raid_time:text>', '开启一个新团', {
       permissions: ['raid-helper:leader']
     })
-    .example('开团 114团 2024-01-01T20:00')
-    .example('开团 114团 2024-01-01 20:00')
-    .example('开团 114团 2024 01 01 20:00')
-    .action(async (argv, team_name: string, raid_time: Date) => {
+    .example('开团 114团 20240101 2000')
+    .action(async (argv, team_name: string, raid_time: string) => {
       if (!team_name || team_name.length <= 0 || !raid_time) {
         await argv.session.send('参数错误，请检查输入');
         await argv.session.execute(`${argv.command.name} --help`);
         return;
       }
-      return await openTeamHandler(ctx, config, argv, team_name, raid_time);
+      const date = moment(raid_time, 'YYYYMMDD HHmm').toDate();
+      if (!date || !isValidDate(date)) {
+        await argv.session.send('日期输入错误，参考 20240101 2000');
+        return;
+      }
+      return await openTeamHandler(ctx, config, argv, team_name, date);
     });
 
   // 关闭报名
