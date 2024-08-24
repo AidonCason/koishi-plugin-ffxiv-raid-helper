@@ -4,7 +4,11 @@ import logger from '../utils/logger';
 import { locale_settings } from '../utils/locale';
 import { selectByDateBetween } from '../dao/teamDAO';
 import { selectValidSignupByTeamName } from '../dao/signupDAO';
-import { getNoticeGroups, getNoticeUsers } from '../utils/group';
+import {
+  getNoticeGroups,
+  getNoticeInnerGroups,
+  getNoticeUsers
+} from '../utils/group';
 
 const noticeToPrivage = async (
   ctx: Context,
@@ -102,7 +106,7 @@ const sendNotice = async (
     });
   }
 
-  const notice_groups = await getNoticeGroups(ctx, config, team_name);
+  const notice_groups = await getNoticeInnerGroups(ctx, config, team_name);
   if (notice_groups.length > 0) {
     notice_groups.forEach(group => {
       setTimeout(() => {

@@ -112,7 +112,7 @@ export const getNoticeUsers = async (
 };
 
 /**
- * 获取需要通知的群
+ * 获取需要通知开团的群
  */
 export const getNoticeGroups = async (
   ctx: Context,
@@ -123,6 +123,22 @@ export const getNoticeGroups = async (
   return (
     config.group_config_map[group_name]?.chat_groups
       ?.filter(l => l.notice)
+      ?.map(l => l.group_id) || []
+  );
+};
+
+/**
+ * 获取需要通知报名/取消的群
+ */
+export const getNoticeInnerGroups = async (
+  ctx: Context,
+  config: Config,
+  team_name: string
+) => {
+  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  return (
+    config.group_config_map[group_name]?.chat_groups
+      ?.filter(l => l.notice_inner)
       ?.map(l => l.group_id) || []
   );
 };

@@ -7,8 +7,17 @@ export interface Config {
     [key: string]: {
       platform: 'onebot' | 'sandbox';
       admin: string;
-      leaders: { user_id: string; notice: boolean; admin: boolean }[];
-      chat_groups: { group_id: string; notice: boolean }[];
+      leaders: {
+        user_id: string;
+        notice: boolean;
+        admin: boolean;
+        nickname: string;
+      }[];
+      chat_groups: {
+        group_id: string;
+        notice: boolean;
+        notice_inner: boolean;
+      }[];
       region_name: string;
       ignore_server: boolean;
     };
@@ -89,7 +98,8 @@ export const Config: Schema<Config> = Schema.intersect([
               .description('平台user_id')
               .required(),
             notice: Schema.boolean().description('接收消息通知').default(true),
-            admin: Schema.boolean().description('拥有admin权限').default(false)
+            admin: Schema.boolean().description('拥有admin权限').default(false),
+            nickname: Schema.string().description('昵称')
           })
         )
           .role('table')
@@ -100,7 +110,10 @@ export const Config: Schema<Config> = Schema.intersect([
               .pattern(not_empty_reg)
               .description('群组id')
               .required(),
-            notice: Schema.boolean().description('接收消息通知').default(true)
+            notice: Schema.boolean().description('接收消息通知').default(true),
+            notice_inner: Schema.boolean()
+              .description('接收报名/取消消息通知')
+              .default(true)
           })
         )
           .role('table')
