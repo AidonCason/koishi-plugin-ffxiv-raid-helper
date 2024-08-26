@@ -121,6 +121,23 @@ export const createTeam = async (
 };
 
 /**
+ * 开启报名
+ */
+export const openSignup = async (
+  ctx: Context,
+  id: number
+): Promise<Driver.WriteResult> => {
+  return await ctx.database.set(
+    team_table_name,
+    { id },
+    {
+      allow_sign_up: true,
+      updated_at: new Date()
+    }
+  );
+};
+
+/**
  * 关闭报名
  */
 export const closeSignup = async (

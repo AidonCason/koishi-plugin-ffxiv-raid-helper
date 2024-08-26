@@ -6,14 +6,17 @@ import { getTeamInfo, selectGroupName, selectCurrentTeam } from '../utils/team';
 import {
   closeSignup,
   createTeam,
+  openSignup,
   selectByDateAfterAndGroupName,
-  selectByName
+  selectByName,
+  updateTeam
 } from '../dao/teamDAO';
 import { selectValidSignupByTeamName } from '../dao/signupDAO';
 import { askOneQuestion, parseAnswerMap } from '../utils/question';
 import Fuse from 'fuse.js';
 import { buildQuestion, QuestionType } from '../constant/question';
 import { locale_settings, date_locale_options } from '../utils/locale';
+import { parseDateTime } from '../utils/date';
 
 // 指挥开团
 const openTeamHandler = async (
@@ -60,6 +63,41 @@ const openTeamHandler = async (
   return '开团成功!';
 };
 
+// 指挥修改最大人数
+const modifyMaxMembersHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  const team = await selectCurrentTeam(ctx, config, session);
+  await session.sendQueued(
+    `当前最大人数为: ${team.max_members} 请输入新的最大人数：`,
+    config.message_interval
+  );
+  await session.prompt(async session => {
+    logger.debug('content:', session.content);
+    const max_members = parseInt(session.content);
+    if (isNaN(max_members) || max_members <= 0) {
+      return '请输入正确的人数';
+    }
+    team.max_members = max_members;
+    await updateTeam(ctx, team);
+    return '修改成功!';
+  });
+};
+
+// 指挥开启报名
+const openSignupHandler = async (ctx: Context, config: Config, argv: Argv) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  const team = await selectCurrentTeam(ctx, config, session);
+  await openSignup(ctx, team.id);
+  return '开启报名成功!';
+};
+
+// 指挥关闭报名
 const closeSignupHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
@@ -68,6 +106,28 @@ const closeSignupHandler = async (ctx: Context, config: Config, argv: Argv) => {
   return '关闭报名成功!';
 };
 
+// 指挥修改团时间
+const modifyRaidTimeHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  const team = await selectCurrentTeam(ctx, config, session);
+  await session.prompt(async session => {
+    logger.debug('content:', session.content);
+    const new_raid_time = parseDateTime(session.content);
+    if (!new_raid_time) {
+      return '请输入正确的时间';
+    }
+    team.raid_start_time = new_raid_time;
+    await updateTeam(ctx, team);
+    return '修改成功!';
+  });
+};
+
+// 指挥查看当前团
 const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const group_name = await selectGroupName(ctx, config, argv.session);
@@ -83,6 +143,7 @@ const checkNowHandler = async (ctx: Context, config: Config, argv: Argv) => {
   return '当前有如下团:\n' + team_infos.join('\n');
 };
 
+// 指挥查看报名详情
 const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
@@ -102,6 +163,7 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
     .join('\n')}`;
 };
 
+// 指挥导出报名情况
 const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
@@ -138,6 +200,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   return '导出结束';
 };
 
+// 指挥给所有报名人员推送消息
 const pushMessageToAllSignup = async (
   ctx: Context,
   config: Config,
@@ -162,6 +225,7 @@ const pushMessageToAllSignup = async (
   return '推送消息成功';
 };
 
+// 指挥根据名字at用户
 const atUserByName = async (
   ctx: Context,
   config: Config,
@@ -206,7 +270,10 @@ const atUserByName = async (
 
 export {
   openTeamHandler,
+  modifyMaxMembersHandler,
+  openSignupHandler,
   closeSignupHandler,
+  modifyRaidTimeHandler,
   checkNowHandler,
   checkDetailHandler,
   exportHandler,
