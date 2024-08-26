@@ -12,14 +12,17 @@ export function permissionsSetup(ctx: Context, config: Config) {
 
   // 初步检测权限，考虑到私聊触发等，更详细的检测应该在指令内部进行
   ctx.permissions.provide('raid-helper:admin', async (_, session) => {
+    if (session.platform.startsWith('sandbox')) return true;
     return checkAdminPermission(config, session.platform, session.userId);
   });
 
   ctx.permissions.provide('raid-helper:leader', async (_, session) => {
+    if (session.platform.startsWith('sandbox')) return true;
     return checkLeaderPermission(config, session.platform, session.userId);
   });
 
   ctx.permissions.provide('raid-helper:user', async (_, session) => {
+    if (session.platform.startsWith('sandbox')) return true;
     const userId = session.userId;
     for (const [, group] of Object.entries(config.group_config_map)) {
       for (const chat_group of group.chat_groups) {
