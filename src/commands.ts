@@ -15,7 +15,11 @@ import {
   contactLeaderHandler
 } from './service/playerService';
 import { Argv, Context, SessionError } from 'koishi';
-import { checkLeaderPermission, getAllChatGroups } from './utils/group';
+import {
+  checkAdminPermission,
+  checkLeaderPermission,
+  getAllChatGroups
+} from './utils/group';
 import moment from 'moment';
 import { isValidDate } from './utils/date';
 import {
@@ -52,7 +56,7 @@ export function commandSetup(ctx: Context, config: Config) {
       session =>
         getAllChatGroups(config).has(session.guildId) ||
         (session.isDirect &&
-          checkLeaderPermission(config, session.platform, session.userId))
+          checkAdminPermission(config, session.platform, session.userId))
     )
     .command('ffxiv-raid-helper.admin', {
       permissions: ['raid-helper:admin']
