@@ -102,13 +102,11 @@ export const cancelSignup = async (
   ctx: Context,
   id: number
 ): Promise<Driver.WriteResult> => {
-  return await ctx.database.upsert(sign_up_table_name, () => [
-    {
-      id,
-      is_canceled: true,
-      updated_at: new Date()
-    }
-  ]);
+  return await ctx.database.set(
+    sign_up_table_name,
+    { id },
+    { is_canceled: true }
+  );
 };
 
 export const countByTeamName = async (
