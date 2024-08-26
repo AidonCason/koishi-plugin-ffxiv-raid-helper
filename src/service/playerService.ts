@@ -107,13 +107,15 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   await session.sendQueued(
     output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
   );
+  const server = results.get('SERVER')?.preitter_answer;
+  const user_name = results.get('NICKNAME')?.preitter_answer;
   // 发送通知
   sendNotice(
     ctx,
     config,
     session.bot,
     team_name,
-    `${team_name} 收到来自${session.userId}的一份新的报名表`
+    `${team_name} ${user_name}@${server}（${session.userId}）报名成功`
   );
   return '报名提交成功!请关注群公告里面的报名结果~';
 };
@@ -160,12 +162,15 @@ const cancelSignupHandler = async (
   for (const sign_up of sign_ups) {
     await cancelSignup(ctx, sign_up.id);
   }
+  const answer = parseAnswerMap(sign_ups[0].content);
+  const server = answer.get('SERVER')?.preitter_answer;
+  const user_name = answer.get('NICKNAME')?.preitter_answer;
   sendNotice(
     ctx,
     config,
     session.bot,
     team_name,
-    `${team_name} ${session.userId}取消报名`
+    `${team_name} ${user_name}@${server}（${session.userId}）取消报名`
   );
   return '已取消报名申请';
 };
