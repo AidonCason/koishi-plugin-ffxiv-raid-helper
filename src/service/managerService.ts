@@ -1,4 +1,4 @@
-import { Argv, Context, h, isInteger } from 'koishi';
+import { Argv, Context, h } from 'koishi';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import * as iconv from 'iconv-lite';
@@ -266,8 +266,8 @@ const atUserByName = async (
       return null;
     }
     // 如果是数字，按序号查找
-    if (isInteger(user_name)) {
-      const idx = parseInt(user_name);
+    const idx = parseInt(user_name);
+    if (!isNaN(idx)) {
       if (idx <= 0 || idx > users.length) {
         return null;
       }
