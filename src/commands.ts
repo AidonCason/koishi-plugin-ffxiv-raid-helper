@@ -14,16 +14,79 @@ import {
   checkSelfHandler,
   contactLeaderHandler
 } from './service/playerService';
-import { Context } from 'koishi';
+import { Argv, Context, SessionError } from 'koishi';
 import { checkLeaderPermission, getAllChatGroups } from './utils/group';
 import moment from 'moment';
 import { isValidDate } from './utils/date';
+import {
+  deleteTeamHandler,
+  modifyRaidTimeHandler
+} from './service/adminService';
+
+const parseDateTime = (date_text: string): Date => {
+  const date = moment(date_text, 'YYYYMMDD HHmm').toDate();
+  if (!date || !isValidDate(date)) {
+    throw new SessionError('日期输入错误，参考 20240101 2000');
+  }
+  return date;
+};
+
+const wrongArgs = async (config: Config, argv: Argv): Promise<void> => {
+  await argv.session.sendQueued(
+    '参数错误，请检查输入',
+    config.message_interval
+  );
+  await argv.session.execute(`${argv.command.name} --help`);
+};
 
 export function commandSetup(ctx: Context, config: Config) {
   ctx
     .command('ffxiv-raid-helper', '最终幻想14高难组团管理助手')
     .action(async argv => {
       await argv.session.execute('ffxiv-raid-helper.help');
+    });
+
+  // 管理员操作 仅限在配置的群内或管理员私聊
+  const admin_command = ctx
+    .intersect(
+      session =>
+        getAllChatGroups(config).has(session.guildId) ||
+        (session.isDirect &&
+          checkLeaderPermission(config, session.platform, session.userId))
+    )
+    .command('ffxiv-raid-helper.admin', {
+      permissions: ['raid-helper:admin']
+    });
+
+  // 修改团时间
+  admin_command
+    .subcommand(
+      '修改团时间 <team_name:string> <new_raid_time:text>',
+      '修改团的开团时间',
+      {
+        permissions: ['raid-helper:admin']
+      }
+    )
+    .example('修改团时间 114团 20240101 2000')
+    .action(async (argv, team_name: string, new_raid_time: string) => {
+      if (!team_name || team_name.length <= 0 || !new_raid_time) {
+        return await wrongArgs(config, argv);
+      }
+      const date = parseDateTime(new_raid_time);
+      return await modifyRaidTimeHandler(ctx, config, argv, team_name, date);
+    });
+
+  // 删除团
+  admin_command
+    .subcommand('删除团 <team_name:string>', '删除一个团', {
+      permissions: ['raid-helper:admin']
+    })
+    .example('删除团 114团')
+    .action(async (argv, team_name: string) => {
+      if (!team_name || team_name.length <= 0) {
+        return await wrongArgs(config, argv);
+      }
+      return await deleteTeamHandler(ctx, config, argv, team_name);
     });
 
   // 指挥操作 仅限在配置的群内或指挥私聊
@@ -46,15 +109,9 @@ export function commandSetup(ctx: Context, config: Config) {
     .example('开团 114团 20240101 2000')
     .action(async (argv, team_name: string, raid_time: string) => {
       if (!team_name || team_name.length <= 0 || !raid_time) {
-        await argv.session.send('参数错误，请检查输入');
-        await argv.session.execute(`${argv.command.name} --help`);
-        return;
+        return await wrongArgs(config, argv);
       }
-      const date = moment(raid_time, 'YYYYMMDD HHmm').toDate();
-      if (!date || !isValidDate(date)) {
-        await argv.session.send('日期输入错误，参考 20240101 2000');
-        return;
-      }
+      const date = parseDateTime(raid_time);
       return await openTeamHandler(ctx, config, argv, team_name, date);
     });
 
