@@ -26,7 +26,7 @@ export interface Answer {
 // key是label，value是Answer
 export type AnswerMap = ReadonlyMap<string, Answer>;
 
-// 以Define结尾的都是用来定义问题的，实际需要通过buildQuestion来构建问题，因为有些字段是可选但有默认值的
+// 以I开头的都是用来定义问题的，实际需要通过buildQuestion来构建问题，因为有些字段是可选但有默认值的
 
 interface IBaseQuestion {
   /**

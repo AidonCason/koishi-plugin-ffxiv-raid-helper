@@ -108,6 +108,11 @@ export const cancelSignup = async (
   );
 };
 
+/**
+ * 查询指定团的报名数
+ * @param team_name 团名
+ * @returns number
+ */
 export const countByTeamName = async (
   ctx: Context,
   team_name: string

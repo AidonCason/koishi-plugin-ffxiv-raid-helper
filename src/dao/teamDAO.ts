@@ -81,7 +81,6 @@ export const updateTeam = async (
  * @param ctx
  * @param begin_time
  * @param group_name
- * @returns
  */
 export const selectByDateAfterAndGroupName = async (
   ctx: Context,
