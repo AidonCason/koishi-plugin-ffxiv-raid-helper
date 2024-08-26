@@ -96,7 +96,6 @@ export const createSignup = async (
 /**
  * 取消自己的报名申请
  * @param id 主键
- * @param history_content 取消报名留存
  */
 export const cancelSignup = async (
   ctx: Context,
