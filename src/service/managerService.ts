@@ -1,4 +1,4 @@
-import { Argv, Context, h } from 'koishi';
+import { Argv, Context, h, isInteger } from 'koishi';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import * as iconv from 'iconv-lite';
@@ -258,9 +258,21 @@ const atUserByName = async (
   const fuse = new Fuse(users, {
     includeScore: true,
     shouldSort: true,
+    threshold: 0.2,
     keys: ['nickname']
   });
   const user_ids = user_names.map(user_name => {
+    if (!user_name) {
+      return null;
+    }
+    // 如果是数字，按序号查找
+    if (isInteger(user_name)) {
+      const idx = parseInt(user_name);
+      if (idx <= 0 || idx > users.length) {
+        return null;
+      }
+      return users[idx - 1].user_id;
+    }
     const result = fuse.search(user_name);
     logger.debug('search result:', result);
     if (result.length == 0) {
