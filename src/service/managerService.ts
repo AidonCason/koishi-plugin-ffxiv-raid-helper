@@ -263,9 +263,14 @@ const atUserByName = async (
   const user_ids = user_names.map(user_name => {
     const result = fuse.search(user_name);
     logger.debug('search result:', result);
+    if (result.length == 0) {
+      return null;
+    }
     return result[0].item.user_id;
   });
-  return user_ids.map(user_id => h('at', { id: user_id })).join(' ');
+  return user_ids
+    .map(user_id => (user_id ? h('at', { id: user_id }) : '未找到用户'))
+    .join(' ');
 };
 
 export {
