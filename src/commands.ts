@@ -23,7 +23,10 @@ import {
   checkLeaderPermission,
   getAllChatGroups
 } from './utils/group';
-import { deleteTeamHandler } from './service/adminService';
+import {
+  deleteTeamHandler,
+  modifyTeamLeaderHandler
+} from './service/adminService';
 import { parseDateTime } from './utils/date';
 
 const wrongArgs = async (config: Config, argv: Argv): Promise<void> => {
@@ -64,6 +67,34 @@ export function commandSetup(ctx: Context, config: Config) {
         return await wrongArgs(config, argv);
       }
       return await deleteTeamHandler(ctx, config, argv, team_name);
+    });
+
+  // 修改指挥
+  admin_command
+    .subcommand(
+      '修改指挥 <team_name:string> <leader_id:string>',
+      '修改一个团的指挥',
+      {
+        permissions: ['raid-helper:admin']
+      }
+    )
+    .example('修改指挥 114团 123456')
+    .action(async (argv, team_name: string, leader_id: string) => {
+      if (
+        !team_name ||
+        team_name.length <= 0 ||
+        !leader_id ||
+        leader_id.length <= 0
+      ) {
+        return await wrongArgs(config, argv);
+      }
+      return await modifyTeamLeaderHandler(
+        ctx,
+        config,
+        argv,
+        team_name,
+        leader_id
+      );
     });
 
   // 指挥操作 仅限在配置的群内或指挥私聊
