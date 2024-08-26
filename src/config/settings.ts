@@ -15,6 +15,7 @@ export interface Config {
       }[];
       chat_groups: {
         group_id: string;
+        comment: string;
         notice: boolean;
         notice_inner: boolean;
       }[];
@@ -110,6 +111,7 @@ export const Config: Schema<Config> = Schema.intersect([
               .pattern(not_empty_reg)
               .description('群组id')
               .required(),
+            comment: Schema.string().description('备注'),
             notice: Schema.boolean().description('接收消息通知').default(true),
             notice_inner: Schema.boolean()
               .description('接收报名/取消消息通知')
