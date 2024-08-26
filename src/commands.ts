@@ -97,6 +97,7 @@ export function commandSetup(ctx: Context, config: Config) {
     .subcommand('修改最大人数', '修改团的最大人数', {
       permissions: ['raid-helper:leader']
     })
+    .alias('修改人数')
     .action(async argv => {
       return await modifyMaxMembersHandler(ctx, config, argv);
     });
@@ -124,6 +125,7 @@ export function commandSetup(ctx: Context, config: Config) {
     .subcommand('修改团时间', '修改团的时间', {
       permissions: ['raid-helper:leader']
     })
+    .alias('修改时间')
     .action(async argv => {
       return await modifyRaidTimeHandler(ctx, config, argv);
     });
