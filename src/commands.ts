@@ -259,6 +259,7 @@ export function commandSetup(ctx: Context, config: Config) {
     });
 
   ctx.command('ffxiv-raid-helper.help', '查看帮助').action(async argv => {
+    await argv.session.execute('ffxiv-raid-helper.admin --help');
     await argv.session.execute('ffxiv-raid-helper.leader --help');
     await argv.session.execute('ffxiv-raid-helper.user --help');
   });
