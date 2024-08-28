@@ -18,6 +18,7 @@ export interface Config {
         comment: string;
         notice: boolean;
         notice_inner: boolean;
+        group_request_auto_accept: boolean;
       }[];
       region_name: string;
       ignore_server: boolean;
@@ -115,7 +116,10 @@ export const Config: Schema<Config> = Schema.intersect([
             notice: Schema.boolean().description('接收消息通知').default(true),
             notice_inner: Schema.boolean()
               .description('接收报名/取消消息通知')
-              .default(true)
+              .default(true),
+            group_request_auto_accept: Schema.boolean()
+              .description('自动接受加群请求')
+              .default(false)
           })
         )
           .role('table')
