@@ -108,23 +108,23 @@ export type IQuestion =
   | IBooleanQuestion
   | ISignleChoiceQuestion;
 
-export abstract class Question {
+export abstract class Question implements IBaseQuestion {
   /**
    * 问题标签
    */
-  label!: string;
+  label: string;
   /**
    * 导出的字段名
    */
-  name!: string;
+  name: string;
   /**
    * 问题内容
    */
-  content!: string;
+  content: string;
   /**
    * 问题类型
    */
-  type!: QuestionType;
+  type: QuestionType;
   /**
    * 构建问题内容，比如单选题多选题要把选项展示出来
    */
@@ -147,7 +147,7 @@ export abstract class Question {
   /**
    * 允许为空，超时时会留空而不是提示重新输入
    */
-  allow_empty?: boolean;
+  allow_empty: boolean = false;
 }
 
 export class TextQuestion extends Question implements ITextQuestion {
