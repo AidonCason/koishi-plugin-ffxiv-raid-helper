@@ -42,17 +42,4 @@ export function apply(ctx: Context, config: Config) {
       session.bot.handleFriendRequest(session.messageId, true);
     }
   });
-
-  ctx.on('guild-member-request', async session => {
-    Object.values(config.group_config_map).forEach(groupConfig => {
-      if (
-        groupConfig.chat_groups.find(
-          c => c.group_id === session.guildId && c.group_request_auto_accept
-        )
-      ) {
-        logger.debug('accept guild member request');
-        session.bot.handleGuildMemberRequest(session.messageId, true);
-      }
-    });
-  });
 }
