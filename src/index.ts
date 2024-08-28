@@ -39,7 +39,7 @@ export function apply(ctx: Context, config: Config) {
       (await ctx.permissions.test(['raid-helper:user'], session))
     ) {
       logger.debug('accept friend request');
-      await session.bot.handleFriendRequest(session.messageId, true);
+      session.bot.handleFriendRequest(session.messageId, true);
     }
   });
 
