@@ -195,7 +195,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
     addBOM: true
   });
   const file = h.file(buffer, 'text/csv');
-  file.attrs.name = `${team_name}.csv`;
+  file.attrs.title = `${team_name}.csv`;
   await session.send(file);
   return '导出结束';
 };
