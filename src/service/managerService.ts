@@ -218,17 +218,17 @@ const pushMessageToAllSignup = async (
     '请输入要推送的消息（输入退出来取消）',
     config.message_interval
   );
-  await session.prompt(async session => {
+  session.prompt(async session => {
     logger.debug('content:', session.content);
     if (session.content == '退出') {
-      return '取消推送';
+      session.sendQueued('取消推送', config.message_interval);
     }
     sign_up.forEach(async s => {
       logger.debug('send to:', s.user_id);
       session.bot.sendPrivateMessage(s.user_id, session.content);
     });
+    session.sendQueued('推送成功', config.message_interval);
   });
-  return '推送消息成功';
 };
 
 // 指挥根据名字at用户
