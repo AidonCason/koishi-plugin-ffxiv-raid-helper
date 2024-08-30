@@ -178,13 +178,13 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   }
   const map = parseAnswerMap(sign_up[0].content);
   const title = Array.from(map.entries())
-    .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
+    .filter(entry => entry[0] != 'NEWBIE')
     .map(entry => entry[1].name)
     .join(',');
   const content = sign_up
     .map(s =>
       Array.from(parseAnswerMap(s.content))
-        .filter(entry => entry[0] != 'NEWBIE' && entry[0] != 'SERVER')
+        .filter(entry => entry[0] != 'NEWBIE')
         .map(entry => entry[1].preitter_answer)
         .join(',')
     )
