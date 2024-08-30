@@ -214,9 +214,15 @@ const pushMessageToAllSignup = async (
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   }
-  await session.sendQueued('请输入要推送的消息', config.message_interval);
+  await session.sendQueued(
+    '请输入要推送的消息（输入退出来取消）',
+    config.message_interval
+  );
   await session.prompt(async session => {
     logger.debug('content:', session.content);
+    if (session.content == '退出') {
+      return '取消推送';
+    }
     sign_up.forEach(async s => {
       logger.debug('send to:', s.user_id);
       session.bot.sendPrivateMessage(s.user_id, session.content);
