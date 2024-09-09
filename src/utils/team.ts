@@ -58,15 +58,15 @@ export const selectGroupName = async (
     }
   }
   logger.debug('group_name_set:', group_name_set);
-  // 如果只有一个团，那么就不用选择了
-  if (group_name_set.size == 1) {
-    return group_name_set.values().next().value;
-  }
   // 都没查到的话查找范围改成所有团
   if (group_name_set.size == 0) {
     Object.keys(config.group_config_map).forEach(group_name => {
       group_name_set.add(group_name);
     });
+  }
+  // 如果只有一个团，那么就不用选择了
+  if (group_name_set.size == 1) {
+    return group_name_set.values().next().value;
   }
   const group_choice_question = buildQuestion({
     label: 'select_group',
