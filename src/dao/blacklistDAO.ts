@@ -39,6 +39,19 @@ export const selectByUserNameAndServer = async (
 };
 
 /**
+ * 模糊查询，返回user_id相同或者游戏名相同的黑名单
+ */
+export const selectByUserIdOrUserName = async (
+  ctx: Context,
+  query: string
+): Promise<BlackListTable[]> => {
+  return await ctx.database.get(black_list_table_name, {
+    $or: [{ user_id: { $eq: query } }, { user_name: { $eq: query } }],
+    is_canceled: { $eq: false }
+  });
+};
+
+/**
  * 查询黑名单
  * @param ctx
  */
@@ -84,14 +97,12 @@ export const createBlackList = async (
  */
 export const deleteBlackList = async (
   ctx: Context,
-  group_name: string,
   id: number
 ): Promise<void> => {
   await ctx.database.set(
     black_list_table_name,
     {
-      id,
-      group_name
+      id
     },
     {
       is_canceled: true

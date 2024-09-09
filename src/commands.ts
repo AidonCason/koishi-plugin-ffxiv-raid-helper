@@ -24,8 +24,10 @@ import {
   getAllChatGroups
 } from './utils/group';
 import {
+  deleteBlackListHandler,
   deleteTeamHandler,
-  modifyTeamLeaderHandler
+  modifyTeamLeaderHandler,
+  queryBlackListHandler
 } from './service/adminService';
 import { parseDateTime } from './utils/date';
 
@@ -95,6 +97,35 @@ export function commandSetup(ctx: Context, config: Config) {
         team_name,
         leader_id
       );
+    });
+
+  // 查看黑名单
+  admin_command
+    .subcommand('查看黑名单 [group_name:string]', '查看黑名单', {
+      permissions: ['raid-helper:admin']
+    })
+    .action(async (argv, group_name: string) => {
+      return await queryBlackListHandler(ctx, config, argv, group_name);
+    });
+
+  // 添加黑名单
+  admin_command
+    .subcommand('添加黑名单 [group_name:string]', '添加黑名单', {
+      permissions: ['raid-helper:admin']
+    })
+    .example('添加黑名单 花火')
+    .action(async (argv, group_name: string) => {
+      return await queryBlackListHandler(ctx, config, argv, group_name);
+    });
+
+  // 删除黑名单
+  admin_command
+    .subcommand('删除黑名单 [group_name:string]', '删除黑名单', {
+      permissions: ['raid-helper:admin']
+    })
+    .example('删除黑名单')
+    .action(async (argv, group_name: string) => {
+      return await deleteBlackListHandler(ctx, config, argv, group_name);
     });
 
   // 指挥操作 仅限在配置的群内或指挥私聊
