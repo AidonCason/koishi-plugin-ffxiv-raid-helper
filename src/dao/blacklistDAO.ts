@@ -86,7 +86,9 @@ export const createBlackList = async (
     user_id,
     user_name,
     server,
-    reason
+    reason,
+    updated_at: new Date(),
+    created_at: new Date()
   });
 };
 
@@ -105,7 +107,8 @@ export const deleteBlackList = async (
       id
     },
     {
-      is_canceled: true
+      is_canceled: true,
+      updated_at: new Date()
     }
   );
 };
