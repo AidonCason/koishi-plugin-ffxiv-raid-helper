@@ -31,3 +31,26 @@ export const selectByUserNameAndServer = async (
     server: { $eq: server }
   });
 };
+
+/**
+ * 添加黑名单
+ * @param ctx
+ * @param user_id 用户id
+ * @param user_name 游戏名
+ * @param server 区服
+ * @param reason 原因
+ */
+export const createBlackList = async (
+  ctx: Context,
+  user_id: string,
+  user_name: string,
+  server: string,
+  reason: string
+): Promise<BlackListTable> => {
+  return await ctx.database.create(black_list_table_name, {
+    user_id,
+    user_name,
+    server,
+    reason
+  });
+};
