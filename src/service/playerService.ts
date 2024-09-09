@@ -19,6 +19,7 @@ import {
 } from '../dao/signupDAO';
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion, parseAnswerMap } from '../utils/question';
+import { checkIfInBlackList } from './blackListService';
 
 const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
@@ -96,6 +97,32 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     r.name,
     r.preitter_answer
   ]);
+  // 给报名者展示一下
+  await session.sendQueued(
+    output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
+  );
+
+  const server = results.get('SERVER')?.preitter_answer;
+  const user_name = results.get('NICKNAME')?.preitter_answer;
+
+  const is_banned = await checkIfInBlackList(
+    ctx,
+    session.userId,
+    user_name,
+    server
+  );
+
+  if (is_banned) {
+    sendNotice(
+      ctx,
+      config,
+      session.bot,
+      team_name,
+      `${team_name} ${user_name}@${server}（${session.userId}）报名失败，黑名单中的用户`
+    );
+    return '报名提交成功!请关注群公告里面的报名结果';
+  }
+
   // 保存到数据库
   await createSignup(
     ctx,
@@ -103,12 +130,6 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     session.userId,
     JSON.stringify(Array.from(results))
   );
-  // 给报名者展示一下
-  await session.sendQueued(
-    output_pairs.map(p => p[0] + ': ' + p[1]).join('\n')
-  );
-  const server = results.get('SERVER')?.preitter_answer;
-  const user_name = results.get('NICKNAME')?.preitter_answer;
   // 发送通知
   sendNotice(
     ctx,

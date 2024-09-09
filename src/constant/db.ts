@@ -7,11 +7,14 @@ const table_prefix = 'ffxiv_raid_helper_';
 export const team_table_name = `${table_prefix}team`;
 // 报名表名称
 export const sign_up_table_name = `${table_prefix}sign_up`;
+// 黑名单表名称
+export const black_list_table_name = `${table_prefix}black_list`;
 
 declare module 'koishi' {
   interface Tables {
     [team_table_name]: TeamListTable;
     [sign_up_table_name]: TeamSignUpTable;
+    [black_list_table_name]: BlackListTable;
   }
 }
 
@@ -36,6 +39,17 @@ export interface TeamSignUpTable {
   user_id: string; // 用户id
   content: string; // 报名内容
   is_canceled: boolean; // 是否取消报名
+  created_at: Date;
+  updated_at: Date;
+}
+
+// 黑名单
+export interface BlackListTable {
+  id: number;
+  user_id: string;
+  user_name: string;
+  server: string;
+  reason: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -73,6 +87,23 @@ export function dbSetup(ctx: Context) {
         type: 'boolean',
         initial: false
       },
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      autoInc: true
+    }
+  );
+
+  ctx.model.extend(
+    black_list_table_name,
+    {
+      id: 'unsigned',
+      user_id: 'string',
+      user_name: 'string',
+      server: 'string',
+      reason: 'text',
       created_at: 'timestamp',
       updated_at: 'timestamp'
     },
