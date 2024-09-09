@@ -24,6 +24,7 @@ import {
   getAllChatGroups
 } from './utils/group';
 import {
+  addToBlackListHandler,
   deleteBlackListHandler,
   deleteTeamHandler,
   modifyTeamLeaderHandler,
@@ -115,7 +116,7 @@ export function commandSetup(ctx: Context, config: Config) {
     })
     .example('添加黑名单 花火')
     .action(async (argv, group_name: string) => {
-      return await queryBlackListHandler(ctx, config, argv, group_name);
+      return await addToBlackListHandler(ctx, config, argv, group_name);
     });
 
   // 删除黑名单
