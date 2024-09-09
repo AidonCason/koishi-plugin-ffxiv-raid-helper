@@ -107,6 +107,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
 
   const is_banned = await checkIfInBlackList(
     ctx,
+    team.group_name,
     session.userId,
     user_name,
     server

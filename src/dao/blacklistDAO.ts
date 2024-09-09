@@ -8,10 +8,13 @@ import { BlackListTable, black_list_table_name } from '../constant/db';
  */
 export const selectByUserId = async (
   ctx: Context,
+  group_name: string,
   user_id: string
 ): Promise<BlackListTable[]> => {
   return await ctx.database.get(black_list_table_name, {
-    user_id: { $eq: user_id }
+    group_name: { $eq: group_name },
+    user_id: { $eq: user_id },
+    is_canceled: { $eq: false }
   });
 };
 
@@ -23,12 +26,29 @@ export const selectByUserId = async (
  */
 export const selectByUserNameAndServer = async (
   ctx: Context,
+  group_name: string,
   user_name: string,
   server: string
 ): Promise<BlackListTable[]> => {
   return await ctx.database.get(black_list_table_name, {
+    group_name: { $eq: group_name },
     user_name: { $eq: user_name },
-    server: { $eq: server }
+    server: { $eq: server },
+    is_canceled: { $eq: false }
+  });
+};
+
+/**
+ * 查询黑名单
+ * @param ctx
+ */
+export const selectAllBlackList = async (
+  ctx: Context,
+  group_name: string
+): Promise<BlackListTable[]> => {
+  return await ctx.database.get(black_list_table_name, {
+    group_name: { $eq: group_name },
+    is_canceled: { $eq: false }
   });
 };
 
@@ -42,15 +62,39 @@ export const selectByUserNameAndServer = async (
  */
 export const createBlackList = async (
   ctx: Context,
+  group_name: string,
   user_id: string,
   user_name: string,
   server: string,
   reason: string
 ): Promise<BlackListTable> => {
   return await ctx.database.create(black_list_table_name, {
+    group_name,
     user_id,
     user_name,
     server,
     reason
   });
+};
+
+/**
+ * 删除黑名单
+ * @param ctx
+ * @param id 黑名单id
+ */
+export const deleteBlackList = async (
+  ctx: Context,
+  group_name: string,
+  id: number
+): Promise<void> => {
+  await ctx.database.set(
+    black_list_table_name,
+    {
+      id,
+      group_name
+    },
+    {
+      is_canceled: true
+    }
+  );
 };

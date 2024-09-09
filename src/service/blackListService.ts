@@ -7,16 +7,18 @@ import {
 
 export const checkIfInBlackList = async (
   ctx: Context,
+  group_name: string,
   user_id: string,
   user_name: string,
   server: string
 ) => {
   // 先根据用户id（QQ号）查找是否在黑名单中
-  const userIdBlackList = await selectByUserId(ctx, user_id);
+  const userIdBlackList = await selectByUserId(ctx, group_name, user_id);
   if (userIdBlackList.length > 0) return true;
   // 再根据游戏名和区服查找是否在黑名单中
   const usernameServerBlackList = await selectByUserNameAndServer(
     ctx,
+    group_name,
     user_name,
     server
   );
@@ -24,6 +26,7 @@ export const checkIfInBlackList = async (
     // 如果在黑名单中，将用户id加入黑名单
     await createBlackList(
       ctx,
+      group_name,
       user_id,
       user_name,
       server,

@@ -46,10 +46,12 @@ export interface TeamSignUpTable {
 // 黑名单
 export interface BlackListTable {
   id: number;
+  group_name: string;
   user_id: string;
   user_name: string;
   server: string;
   reason: string;
+  is_canceled: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -100,10 +102,15 @@ export function dbSetup(ctx: Context) {
     black_list_table_name,
     {
       id: 'unsigned',
+      group_name: 'string',
       user_id: 'string',
       user_name: 'string',
       server: 'string',
       reason: 'text',
+      is_canceled: {
+        type: 'boolean',
+        initial: false
+      },
       created_at: 'timestamp',
       updated_at: 'timestamp'
     },
