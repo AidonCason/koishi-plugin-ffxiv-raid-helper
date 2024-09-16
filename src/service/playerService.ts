@@ -121,7 +121,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       team_name,
       `${team_name} ${user_name}@${server}（${session.userId}）报名失败，黑名单中的用户`
     );
-    return '报名提交成功!请关注群公告里面的报名结果';
+    return '报名失败，黑名单中的用户，请联系指挥';
   }
 
   // 保存到数据库
