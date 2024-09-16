@@ -17,6 +17,7 @@ import {
   getSignUpNoticeWithTimerGroups,
   getSignUpNoticeWithTimerUsers
 } from '../utils/group';
+import { parseAnswerMap } from '../utils/question';
 
 /**
  * 推送消息给私聊
@@ -142,9 +143,12 @@ const signupNoticeWithTimer = async (ctx: Context, config: Config) => {
       // 合并成一条消息，区分报名和取消报名
       const sign_up_msg = sign_ups
         .map(s => {
+          const answer = parseAnswerMap(s.content);
+          const server = answer.get('SERVER')?.preitter_answer;
+          const user_name = answer.get('NICKNAME')?.preitter_answer;
           return s.is_canceled
-            ? `取消报名：${s.user_id}`
-            : `报名：${s.user_id}`;
+            ? `${s.team_name} ${user_name}@${server}（${s.user_id}）取消报名`
+            : `${s.team_name} ${user_name}@${server}（${s.user_id}）报名`;
         })
         .join('\n');
       const msg = `团 ${team.team_name} 报名情况：\n${sign_up_msg}`;
