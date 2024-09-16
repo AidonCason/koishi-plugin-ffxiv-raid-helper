@@ -3,8 +3,9 @@ import { Config } from './config/settings';
 import { dbSetup } from './constant/db';
 import {} from 'koishi-plugin-cron';
 import {
-  noticeOneDayBefore,
-  noticeTwoHoursBefore
+  beginNoticeOneDayBefore,
+  beginNoticeTwoHoursBefore,
+  signupNoticeWithTimer
 } from './service/noticeService';
 import { commandSetup } from './commands';
 import { permissionsSetup } from './permissions';
@@ -26,8 +27,13 @@ export function apply(ctx: Context, config: Config) {
 
   // 每分钟检查是否当前有团，有的话对参团人员进行推送
   ctx.cron('0/5 * * * *', () => {
-    noticeOneDayBefore(ctx, config);
-    noticeTwoHoursBefore(ctx, config);
+    beginNoticeOneDayBefore(ctx, config);
+    beginNoticeTwoHoursBefore(ctx, config);
+  });
+
+  // 每天22点推送报名消息
+  ctx.cron('0 22 * * *', () => {
+    signupNoticeWithTimer(ctx, config);
   });
 
   permissionsSetup(ctx, config);

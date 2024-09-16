@@ -2,8 +2,14 @@ import { Bot, Context } from 'koishi';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import { locale_settings } from '../utils/locale';
-import { selectByDateBetween } from '../dao/teamDAO';
-import { selectValidSignupByTeamName } from '../dao/signupDAO';
+import {
+  selectByDateAfterAndGroupName,
+  selectByDateBetween
+} from '../dao/teamDAO';
+import {
+  selectAllSignupByTeamNameAndDateBetween,
+  selectValidSignupByTeamName
+} from '../dao/signupDAO';
 import {
   getBeginNoticeGroups,
   getSignUpNoticeInTimeGroups,
@@ -12,6 +18,9 @@ import {
   getSignUpNoticeWithTimerUsers
 } from '../utils/group';
 
+/**
+ * 推送消息给私聊
+ */
 const noticeToPrivage = async (
   ctx: Context,
   config: Config,
@@ -32,6 +41,9 @@ const noticeToPrivage = async (
   bot.sendPrivateMessage(user_id, message);
 };
 
+/**
+ * 推送消息给群聊
+ */
 const noticeToGroup = async (
   ctx: Context,
   config: Config,
@@ -50,23 +62,32 @@ const noticeToGroup = async (
   bot.sendMessage(group_id, message, group_id);
 };
 
-const noticeOneDayBefore = async (ctx: Context, config: Config) => {
+/**
+ * 开车前一天推送
+ */
+const beginNoticeOneDayBefore = async (ctx: Context, config: Config) => {
   const begin_time = new Date();
   begin_time.setDate(begin_time.getDate() + 1);
   const end_time = new Date(begin_time);
   end_time.setMinutes(end_time.getMinutes() + 5);
-  return await noticeBefore(ctx, config, begin_time, end_time);
+  return await beginNoticeBefore(ctx, config, begin_time, end_time);
 };
 
-const noticeTwoHoursBefore = async (ctx: Context, config: Config) => {
+/**
+ * 开车前两小时推送
+ */
+const beginNoticeTwoHoursBefore = async (ctx: Context, config: Config) => {
   const begin_time = new Date();
   begin_time.setHours(begin_time.getHours() + 2);
   const end_time = new Date(begin_time);
   end_time.setMinutes(end_time.getMinutes() + 5);
-  return await noticeBefore(ctx, config, begin_time, end_time);
+  return await beginNoticeBefore(ctx, config, begin_time, end_time);
 };
 
-const noticeBefore = async (
+/**
+ * 开车前推送
+ */
+const beginNoticeBefore = async (
   ctx: Context,
   config: Config,
   begin_time: Date,
@@ -91,6 +112,63 @@ const noticeBefore = async (
       noticeToPrivage(ctx, config, bot, s.user_id, msg);
     });
   });
+};
+
+/**
+ * 报名信息推送
+ */
+const signupNoticeWithTimer = async (ctx: Context, config: Config) => {
+  const bot = ctx.bots.find(bot => bot.isActive);
+  const group_names = Object.keys(config.group_config_map);
+  for (const group_name of group_names) {
+    const teamList = await selectByDateAfterAndGroupName(
+      ctx,
+      new Date(),
+      group_name
+    );
+    if (teamList.length == 0) continue;
+    for (const team of teamList) {
+      // 查询24小时前到现在的报名信息
+      const begin_time = new Date();
+      begin_time.setHours(begin_time.getHours() - 24);
+      const end_time = new Date();
+      const sign_ups = await selectAllSignupByTeamNameAndDateBetween(
+        ctx,
+        team.team_name,
+        begin_time,
+        end_time
+      );
+      if (sign_ups.length == 0) continue;
+      // 合并成一条消息，区分报名和取消报名
+      const sign_up_msg = sign_ups
+        .map(s => {
+          return s.is_canceled
+            ? `取消报名：${s.user_id}`
+            : `报名：${s.user_id}`;
+        })
+        .join('\n');
+      const msg = `团 ${team.team_name} 报名情况：\n${sign_up_msg}`;
+      logger.info(`推送消息：${msg}`);
+      // 推送给群组
+      const groups = await getSignUpNoticeWithTimerGroups(
+        ctx,
+        config,
+        team.team_name
+      );
+      groups.forEach(g => {
+        noticeToGroup(ctx, config, bot, g, msg);
+      });
+      // 推送给个人
+      const users = await getSignUpNoticeWithTimerUsers(
+        ctx,
+        config,
+        team.team_name
+      );
+      users.forEach(u => {
+        noticeToPrivage(ctx, config, bot, u, msg);
+      });
+    }
+  }
 };
 
 const sendNoticeInTime = async (
@@ -160,8 +238,9 @@ const sendNoticeWithTimer = async (
 export {
   noticeToPrivage,
   noticeToGroup,
-  noticeOneDayBefore,
-  noticeTwoHoursBefore,
+  beginNoticeOneDayBefore,
+  beginNoticeTwoHoursBefore,
+  signupNoticeWithTimer,
   sendNoticeInTime,
   sendNoticeWithTimer
 };
