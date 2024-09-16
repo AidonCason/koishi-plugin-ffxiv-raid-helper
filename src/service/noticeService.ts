@@ -5,9 +5,11 @@ import { locale_settings } from '../utils/locale';
 import { selectByDateBetween } from '../dao/teamDAO';
 import { selectValidSignupByTeamName } from '../dao/signupDAO';
 import {
-  getNoticeGroups,
-  getNoticeInnerGroups,
-  getNoticeUsers
+  getBeginNoticeGroups,
+  getSignUpNoticeInTimeGroups,
+  getSignUpNoticeInTimeUsers,
+  getSignUpNoticeWithTimerGroups,
+  getSignUpNoticeWithTimerUsers
 } from '../utils/group';
 
 const noticeToPrivage = async (
@@ -79,8 +81,7 @@ const noticeBefore = async (
     const msg = `团 ${e.team_name} 将于 ${e.raid_start_time.toLocaleString(locale_settings.current)} 发车`;
     logger.info(`推送消息：${msg}`);
 
-    // TODO: 这里应该只推送给大群吧，小群的话就不推送了
-    const groups = await getNoticeGroups(ctx, config, e.team_name);
+    const groups = await getBeginNoticeGroups(ctx, config, e.team_name);
     groups.forEach(g => {
       noticeToGroup(ctx, config, bot, g, msg);
     });
@@ -92,14 +93,14 @@ const noticeBefore = async (
   });
 };
 
-const sendNotice = async (
+const sendNoticeInTime = async (
   ctx: Context,
   config: Config,
   bot: Bot,
   team_name: string,
   message: string
 ) => {
-  const notice_users = await getNoticeUsers(ctx, config, team_name);
+  const notice_users = await getSignUpNoticeInTimeUsers(ctx, config, team_name);
   if (notice_users.length > 0) {
     notice_users.forEach(user => {
       setTimeout(() => {
@@ -108,11 +109,49 @@ const sendNotice = async (
     });
   }
 
-  const notice_groups = await getNoticeInnerGroups(ctx, config, team_name);
+  const notice_groups = await getSignUpNoticeInTimeGroups(
+    ctx,
+    config,
+    team_name
+  );
   if (notice_groups.length > 0) {
     notice_groups.forEach(group => {
       setTimeout(() => {
         noticeToGroup(ctx, config, bot, group, message);
+      }, config.message_interval);
+    });
+  }
+};
+
+const sendNoticeWithTimer = async (
+  ctx: Context,
+  config: Config,
+  bot: Bot,
+  team_name: string,
+  message: string
+) => {
+  const notice_groups = await getSignUpNoticeWithTimerGroups(
+    ctx,
+    config,
+    team_name
+  );
+  if (notice_groups.length > 0) {
+    notice_groups.forEach(group => {
+      setTimeout(() => {
+        noticeToGroup(ctx, config, bot, group, message);
+      }, config.message_interval);
+    });
+  }
+
+  const notice_users = await getSignUpNoticeWithTimerUsers(
+    ctx,
+    config,
+    team_name
+  );
+  if (notice_users.length > 0) {
+    notice_users.forEach(user => {
+      setTimeout(() => {
+        noticeToPrivage(ctx, config, bot, user, message);
       }, config.message_interval);
     });
   }
@@ -123,5 +162,6 @@ export {
   noticeToGroup,
   noticeOneDayBefore,
   noticeTwoHoursBefore,
-  sendNotice
+  sendNoticeInTime,
+  sendNoticeWithTimer
 };

@@ -1,7 +1,7 @@
 import { Context, Argv } from 'koishi';
 import { Config } from '../config/settings';
 import { ErrorCode } from '../constant/common';
-import { sendNotice } from './noticeService';
+import { sendNoticeInTime } from './noticeService';
 import { selectCurrentTeam } from '../utils/team';
 import {
   Answer,
@@ -114,7 +114,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   );
 
   if (is_banned) {
-    sendNotice(
+    sendNoticeInTime(
       ctx,
       config,
       session.bot,
@@ -132,7 +132,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     JSON.stringify(Array.from(results))
   );
   // 发送通知
-  sendNotice(
+  sendNoticeInTime(
     ctx,
     config,
     session.bot,
@@ -187,7 +187,7 @@ const cancelSignupHandler = async (
   const answer = parseAnswerMap(sign_ups[0].content);
   const server = answer.get('SERVER')?.preitter_answer;
   const user_name = answer.get('NICKNAME')?.preitter_answer;
-  sendNotice(
+  sendNoticeInTime(
     ctx,
     config,
     session.bot,

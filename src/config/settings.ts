@@ -9,15 +9,17 @@ export interface Config {
       admin: string;
       leaders: {
         user_id: string;
-        notice: boolean;
         admin: boolean;
         nickname: string;
+        signup_notice_in_time: boolean;
+        signup_notice_with_timer: boolean;
       }[];
       chat_groups: {
         group_id: string;
         comment: string;
-        notice: boolean;
-        notice_inner: boolean;
+        begin_notice: boolean;
+        signup_notice_in_time: boolean;
+        signup_notice_with_timer: boolean;
       }[];
       region_name: string;
       ignore_server: boolean;
@@ -98,9 +100,14 @@ export const Config: Schema<Config> = Schema.intersect([
               .pattern(not_empty_reg)
               .description('平台user_id')
               .required(),
-            notice: Schema.boolean().description('接收消息通知').default(true),
             admin: Schema.boolean().description('拥有admin权限').default(false),
-            nickname: Schema.string().description('昵称')
+            nickname: Schema.string().description('昵称'),
+            signup_notice_in_time: Schema.boolean()
+              .description('实时接收报名消息')
+              .default(false),
+            signup_notice_with_timer: Schema.boolean()
+              .description('定时接收报名消息')
+              .default(false)
           })
         )
           .role('table')
@@ -112,10 +119,15 @@ export const Config: Schema<Config> = Schema.intersect([
               .description('群组id')
               .required(),
             comment: Schema.string().description('备注'),
-            notice: Schema.boolean().description('接收消息通知').default(true),
-            notice_inner: Schema.boolean()
-              .description('接收报名/取消消息通知')
-              .default(true)
+            begin_notice: Schema.boolean()
+              .description('接收发车通知')
+              .default(true),
+            signup_notice_in_time: Schema.boolean()
+              .description('实时接收报名消息')
+              .default(false),
+            signup_notice_with_timer: Schema.boolean()
+              .description('定时接收报名消息')
+              .default(false)
           })
         )
           .role('table')

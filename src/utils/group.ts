@@ -96,9 +96,9 @@ export const getGroupNameByTeamName = async (
 };
 
 /**
- * 获取需要通知的人
+ * 获取实时需要通知报名的人
  */
-export const getNoticeUsers = async (
+export const getSignUpNoticeInTimeUsers = async (
   ctx: Context,
   config: Config,
   team_name: string
@@ -106,15 +106,31 @@ export const getNoticeUsers = async (
   const group_name = await getGroupNameByTeamName(ctx, team_name);
   return (
     config.group_config_map[group_name]?.leaders
-      ?.filter(l => l.notice)
+      ?.filter(l => l.signup_notice_in_time)
       ?.map(l => l.user_id) || []
   );
 };
 
 /**
- * 获取需要通知开团的群
+ * 获取定时需要通知报名的人
  */
-export const getNoticeGroups = async (
+export const getSignUpNoticeWithTimerUsers = async (
+  ctx: Context,
+  config: Config,
+  team_name: string
+) => {
+  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  return (
+    config.group_config_map[group_name]?.leaders
+      ?.filter(l => l.signup_notice_with_timer)
+      ?.map(l => l.user_id) || []
+  );
+};
+
+/**
+ * 获取实时需要通知报名的群
+ */
+export const getSignUpNoticeInTimeGroups = async (
   ctx: Context,
   config: Config,
   team_name: string
@@ -122,15 +138,15 @@ export const getNoticeGroups = async (
   const group_name = await getGroupNameByTeamName(ctx, team_name);
   return (
     config.group_config_map[group_name]?.chat_groups
-      ?.filter(l => l.notice)
+      ?.filter(l => l.signup_notice_in_time)
       ?.map(l => l.group_id) || []
   );
 };
 
 /**
- * 获取需要通知报名/取消的群
+ * 获取定时需要通知报名的群
  */
-export const getNoticeInnerGroups = async (
+export const getSignUpNoticeWithTimerGroups = async (
   ctx: Context,
   config: Config,
   team_name: string
@@ -138,7 +154,23 @@ export const getNoticeInnerGroups = async (
   const group_name = await getGroupNameByTeamName(ctx, team_name);
   return (
     config.group_config_map[group_name]?.chat_groups
-      ?.filter(l => l.notice_inner)
+      ?.filter(l => l.signup_notice_with_timer)
+      ?.map(l => l.group_id) || []
+  );
+};
+
+/**
+ * 获取需要通知开车的群
+ */
+export const getBeginNoticeGroups = async (
+  ctx: Context,
+  config: Config,
+  team_name: string
+) => {
+  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  return (
+    config.group_config_map[group_name]?.chat_groups
+      ?.filter(l => l.begin_notice)
       ?.map(l => l.group_id) || []
   );
 };
