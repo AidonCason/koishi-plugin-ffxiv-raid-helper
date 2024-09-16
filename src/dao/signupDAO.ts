@@ -147,7 +147,7 @@ export const countByRaids = async (
 /**
  * 查询某团指定时间范围内的所有报名
  */
-export const selectAllSignupByTeamNameAndDateBetween = async (
+export const selectAllValidSignupByTeamNameAndDateBetween = async (
   ctx: Context,
   team_name: string,
   begin_time: Date,
@@ -155,6 +155,26 @@ export const selectAllSignupByTeamNameAndDateBetween = async (
 ): Promise<TeamSignUpTable[]> => {
   return await ctx.database.get(sign_up_table_name, {
     team_name: { $eq: team_name },
+    is_canceled: { $eq: false },
     created_at: { $gte: begin_time, $lt: end_time }
   });
+};
+
+/**
+ * 查询每个用户的报名次数
+ */
+export const selectSignupCountByUser = async (
+  ctx: Context,
+  team_name: string
+): Promise<{ user_id: string; count: number; is_success: boolean }[]> => {
+  return await ctx.database
+    .select(sign_up_table_name)
+    .where({
+      team_name
+    })
+    .groupBy('user_id', {
+      count: row => $.count(row.id),
+      is_success: row => $.xor(row.is_canceled)
+    })
+    .execute();
 };

@@ -7,7 +7,8 @@ import {
   selectByDateBetween
 } from '../dao/teamDAO';
 import {
-  selectAllSignupByTeamNameAndDateBetween,
+  selectAllValidSignupByTeamNameAndDateBetween,
+  selectSignupCountByUser,
   selectValidSignupByTeamName
 } from '../dao/signupDAO';
 import {
@@ -133,25 +134,28 @@ const signupNoticeWithTimer = async (ctx: Context, config: Config) => {
       const begin_time = new Date();
       begin_time.setHours(begin_time.getHours() - 24);
       const end_time = new Date();
-      const sign_ups = await selectAllSignupByTeamNameAndDateBetween(
+      const sign_ups = await selectAllValidSignupByTeamNameAndDateBetween(
         ctx,
         team.team_name,
         begin_time,
         end_time
       );
       if (sign_ups.length == 0) continue;
-      // 合并成一条消息，区分报名和取消报名
+      const sign_up_count = await selectSignupCountByUser(ctx, team.team_name);
+      // 合并成一条消息，显示报名次数
       const sign_up_msg = sign_ups
         .map(s => {
           const answer = parseAnswerMap(s.content);
           const server = answer.get('SERVER')?.preitter_answer;
           const user_name = answer.get('NICKNAME')?.preitter_answer;
-          return s.is_canceled
-            ? `${s.team_name} ${user_name}@${server}（${s.user_id}）取消报名`
-            : `${s.team_name} ${user_name}@${server}（${s.user_id}）报名`;
+          // 查询报名次数
+          const count = sign_up_count.find(c => c.user_id == s.user_id)?.count;
+          return count == 1
+            ? `${user_name}@${server}（${s.user_id}）`
+            : `${user_name}@${server}（${s.user_id}） 报名次数：${count}`;
         })
         .join('\n');
-      const msg = `团 ${team.team_name} 报名情况：\n${sign_up_msg}`;
+      const msg = `${team.group_name} ${team.team_name} 今日新增报名${sign_ups.length}人：\n${sign_up_msg}`;
       logger.info(`推送消息：${msg}`);
       // 推送给群组
       const groups = await getSignUpNoticeWithTimerGroups(
