@@ -172,7 +172,7 @@ export const selectSignupCountByUser = async (
     .where({
       team_name
     })
-    .groupBy('user_id', {
+    .groupBy(['user_id', 'is_canceled'], {
       count: row => $.count(row.id),
       is_success: row => $.xor(row.is_canceled)
     })
