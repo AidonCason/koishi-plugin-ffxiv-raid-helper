@@ -80,11 +80,11 @@ const modifyMaxMembersHandler = async (
     logger.debug('content:', session.content);
     const max_members = parseInt(session.content);
     if (isNaN(max_members) || max_members <= 0) {
-      return '请输入正确的人数';
+      session.sendQueued('请输入正确的人数', config.message_interval);
     }
     team.max_members = max_members;
     await updateTeam(ctx, team);
-    return '修改成功!';
+    session.sendQueued('修改成功!', config.message_interval);
   });
 };
 
@@ -115,15 +115,22 @@ const modifyRaidTimeHandler = async (
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
+  await session.sendQueued(
+    `当前团时间为: ${team.raid_start_time.toLocaleString(
+      locale_settings.current,
+      date_locale_options
+    )} 请输入新的团时间：`,
+    config.message_interval
+  );
   await session.prompt(async session => {
     logger.debug('content:', session.content);
     const new_raid_time = parseDateTime(session.content);
     if (!new_raid_time) {
-      return '请输入正确的时间';
+      session.sendQueued('请输入正确的时间', config.message_interval);
     }
     team.raid_start_time = new_raid_time;
     await updateTeam(ctx, team);
-    return '修改成功!';
+    session.sendQueued('修改成功!', config.message_interval);
   });
 };
 
