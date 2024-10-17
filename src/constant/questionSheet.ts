@@ -5,9 +5,9 @@ import { buildQuestion, IQuestion, Question, QuestionType } from './question';
 export const duties: Readonly<Record<string, ReadonlyArray<string>>> = {
   坦克: ['骑士', '战士', '黑骑', '绝枪'],
   治疗: ['白魔', '学者', '占星', '贤者'],
-  近战: ['武僧', '龙骑', '忍者', '武士', '镰刀'],
+  近战: ['武僧', '龙骑', '忍者', '武士', '镰刀', '蝰蛇'],
   远敏: ['诗人', '机工', '舞者'],
-  法系: ['黑魔', '召唤', '赤魔'],
+  法系: ['黑魔', '召唤', '赤魔', '绘灵'],
   全能: []
 };
 
