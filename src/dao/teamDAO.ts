@@ -32,13 +32,27 @@ export const selectByDateAfter = async (
 };
 
 /**
+ * 查询指定id的团
+ */
+export const selectById = async (
+  ctx: Context,
+  id: number
+): Promise<TeamListTable[]> => {
+  return await ctx.database.get(team_table_name, {
+    id: { $eq: id }
+  });
+};
+
+/**
  * 查询指定名称的团
  */
-export const selectByName = async (
+export const selectByGroupNameAndTeamName = async (
   ctx: Context,
+  group_name: string,
   team_name: string
 ): Promise<TeamListTable[]> => {
   return await ctx.database.get(team_table_name, {
+    group_name: { $eq: group_name },
     team_name: { $eq: team_name }
   });
 };

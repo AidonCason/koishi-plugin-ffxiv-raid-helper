@@ -1,5 +1,9 @@
 import { Argv, Context } from 'koishi';
-import { deleteTeam, selectByName, updateTeam } from '../dao/teamDAO';
+import {
+  deleteTeam,
+  selectByGroupNameAndTeamName,
+  updateTeam
+} from '../dao/teamDAO';
 import { buildQuestion, QuestionType } from '../constant/question';
 import { askOneQuestion } from '../utils/question';
 import { Config } from '../config/settings';
@@ -19,7 +23,8 @@ const deleteTeamHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const one = await selectByName(ctx, team_name);
+  const group_name = await selectGroupName(ctx, config, session);
+  const one = await selectByGroupNameAndTeamName(ctx, group_name, team_name);
   if (!one || one.length === 0) {
     return '团不存在！';
   }
@@ -46,7 +51,8 @@ const modifyTeamLeaderHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const one = await selectByName(ctx, team_name);
+  const group_name = await selectGroupName(ctx, config, session);
+  const one = await selectByGroupNameAndTeamName(ctx, group_name, team_name);
   if (!one || one.length === 0) {
     return '团不存在！';
   }

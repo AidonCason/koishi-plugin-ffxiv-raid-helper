@@ -104,7 +104,7 @@ const beginNoticeBefore = async (
     const msg = `团 ${e.team_name} 将于 ${e.raid_start_time.toLocaleString(locale_settings.current)} 发车`;
     logger.info(`推送消息：${msg}`);
 
-    const groups = await getBeginNoticeGroups(ctx, config, e.team_name);
+    const groups = await getBeginNoticeGroups(ctx, config, e.id);
     groups.forEach(g => {
       noticeToGroup(ctx, config, bot, g, msg);
     });
@@ -158,20 +158,12 @@ const signupNoticeWithTimer = async (ctx: Context, config: Config) => {
       const msg = `${team.group_name} ${team.team_name} 今日新增报名${sign_ups.length}人：\n${sign_up_msg}`;
       logger.info(`推送消息：${msg}`);
       // 推送给群组
-      const groups = await getSignUpNoticeWithTimerGroups(
-        ctx,
-        config,
-        team.team_name
-      );
+      const groups = await getSignUpNoticeWithTimerGroups(ctx, config, team.id);
       groups.forEach(g => {
         noticeToGroup(ctx, config, bot, g, msg);
       });
       // 推送给个人
-      const users = await getSignUpNoticeWithTimerUsers(
-        ctx,
-        config,
-        team.team_name
-      );
+      const users = await getSignUpNoticeWithTimerUsers(ctx, config, team.id);
       users.forEach(u => {
         noticeToPrivage(ctx, config, bot, u, msg);
       });
@@ -183,10 +175,10 @@ const sendNoticeInTime = async (
   ctx: Context,
   config: Config,
   bot: Bot,
-  team_name: string,
+  id: number,
   message: string
 ) => {
-  const notice_users = await getSignUpNoticeInTimeUsers(ctx, config, team_name);
+  const notice_users = await getSignUpNoticeInTimeUsers(ctx, config, id);
   if (notice_users.length > 0) {
     notice_users.forEach(user => {
       setTimeout(() => {
@@ -195,11 +187,7 @@ const sendNoticeInTime = async (
     });
   }
 
-  const notice_groups = await getSignUpNoticeInTimeGroups(
-    ctx,
-    config,
-    team_name
-  );
+  const notice_groups = await getSignUpNoticeInTimeGroups(ctx, config, id);
   if (notice_groups.length > 0) {
     notice_groups.forEach(group => {
       setTimeout(() => {
@@ -213,14 +201,10 @@ const sendNoticeWithTimer = async (
   ctx: Context,
   config: Config,
   bot: Bot,
-  team_name: string,
+  id: number,
   message: string
 ) => {
-  const notice_groups = await getSignUpNoticeWithTimerGroups(
-    ctx,
-    config,
-    team_name
-  );
+  const notice_groups = await getSignUpNoticeWithTimerGroups(ctx, config, id);
   if (notice_groups.length > 0) {
     notice_groups.forEach(group => {
       setTimeout(() => {
@@ -229,11 +213,7 @@ const sendNoticeWithTimer = async (
     });
   }
 
-  const notice_users = await getSignUpNoticeWithTimerUsers(
-    ctx,
-    config,
-    team_name
-  );
+  const notice_users = await getSignUpNoticeWithTimerUsers(ctx, config, id);
   if (notice_users.length > 0) {
     notice_users.forEach(user => {
       setTimeout(() => {

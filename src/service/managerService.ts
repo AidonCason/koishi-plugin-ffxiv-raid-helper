@@ -8,7 +8,7 @@ import {
   createTeam,
   openSignup,
   selectByDateAfterAndGroupName,
-  selectByName,
+  selectByGroupNameAndTeamName,
   updateTeam
 } from '../dao/teamDAO';
 import { selectValidSignupByTeamName } from '../dao/signupDAO';
@@ -28,14 +28,14 @@ const openTeamHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  const one = await selectByName(ctx, team_name);
+  const group_name = await selectGroupName(ctx, config, session);
+  const one = await selectByGroupNameAndTeamName(ctx, group_name, team_name);
   if (one && one.length > 0) {
     return '团已经存在！';
   }
   if (raid_time < new Date()) {
     return '开团时间不能早于当前时间';
   }
-  const group_name = await selectGroupName(ctx, config, session);
   const region_name = config.group_config_map[group_name].region_name;
   const confirm_create_question = buildQuestion({
     label: 'confirm_create',

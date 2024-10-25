@@ -118,7 +118,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       ctx,
       config,
       session.bot,
-      team_name,
+      team.id,
       `${team_name} ${user_name}@${server}（${session.userId}）报名失败，黑名单中的用户`
     );
     return '报名失败，黑名单中的用户，请联系指挥';
@@ -136,7 +136,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     ctx,
     config,
     session.bot,
-    team_name,
+    team.id,
     `${team_name} ${user_name}@${server}（${session.userId}）报名成功`
   );
   return '报名提交成功!请关注群公告里面的报名结果~';
@@ -191,7 +191,7 @@ const cancelSignupHandler = async (
     ctx,
     config,
     session.bot,
-    team_name,
+    team.id,
     `${team_name} ${user_name}@${server}（${session.userId}）取消报名`
   );
   return '已取消报名申请';

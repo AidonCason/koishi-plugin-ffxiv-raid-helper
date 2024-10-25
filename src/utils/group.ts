@@ -1,6 +1,6 @@
 import { Context, Session, SessionError } from 'koishi';
 import { Config } from '../config/settings';
-import { selectByName } from '../dao/teamDAO';
+import { selectById } from '../dao/teamDAO';
 import logger from './logger';
 
 export const getAllChatGroups = (config: Config) => {
@@ -84,11 +84,8 @@ export const checkLeaderPermission = (
 /**
  * 获取团名
  */
-export const getGroupNameByTeamName = async (
-  ctx: Context,
-  team_name: string
-) => {
-  const teams = await selectByName(ctx, team_name);
+export const getGroupNameById = async (ctx: Context, id: number) => {
+  const teams = await selectById(ctx, id);
   if (teams.length == 0) {
     throw new SessionError('未查询到该团');
   }
@@ -101,9 +98,9 @@ export const getGroupNameByTeamName = async (
 export const getSignUpNoticeInTimeUsers = async (
   ctx: Context,
   config: Config,
-  team_name: string
+  id: number
 ) => {
-  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  const group_name = await getGroupNameById(ctx, id);
   return (
     config.group_config_map[group_name]?.leaders
       ?.filter(l => l.signup_notice_in_time)
@@ -117,9 +114,9 @@ export const getSignUpNoticeInTimeUsers = async (
 export const getSignUpNoticeWithTimerUsers = async (
   ctx: Context,
   config: Config,
-  team_name: string
+  id: number
 ) => {
-  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  const group_name = await getGroupNameById(ctx, id);
   return (
     config.group_config_map[group_name]?.leaders
       ?.filter(l => l.signup_notice_with_timer)
@@ -133,9 +130,9 @@ export const getSignUpNoticeWithTimerUsers = async (
 export const getSignUpNoticeInTimeGroups = async (
   ctx: Context,
   config: Config,
-  team_name: string
+  id: number
 ) => {
-  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  const group_name = await getGroupNameById(ctx, id);
   return (
     config.group_config_map[group_name]?.chat_groups
       ?.filter(l => l.signup_notice_in_time)
@@ -149,9 +146,9 @@ export const getSignUpNoticeInTimeGroups = async (
 export const getSignUpNoticeWithTimerGroups = async (
   ctx: Context,
   config: Config,
-  team_name: string
+  id: number
 ) => {
-  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  const group_name = await getGroupNameById(ctx, id);
   return (
     config.group_config_map[group_name]?.chat_groups
       ?.filter(l => l.signup_notice_with_timer)
@@ -165,9 +162,9 @@ export const getSignUpNoticeWithTimerGroups = async (
 export const getBeginNoticeGroups = async (
   ctx: Context,
   config: Config,
-  team_name: string
+  id: number
 ) => {
-  const group_name = await getGroupNameByTeamName(ctx, team_name);
+  const group_name = await getGroupNameById(ctx, id);
   return (
     config.group_config_map[group_name]?.chat_groups
       ?.filter(l => l.begin_notice)
