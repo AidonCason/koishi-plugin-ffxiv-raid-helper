@@ -217,9 +217,9 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const _file_path = pathToFileURL(path.resolve(root, file_name)).href;
   logger.info('filepath 2: ' + _file_path);
   const file = h.file(_file_path);
-  file.attrs.title = `${team_name}.csv`;
+  file.attrs.title = file_name;
 
-  await session.send(_file_path);
+  await session.send(file);
 
   return '导出结束';
 };
