@@ -199,13 +199,11 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const buffer = iconv.encode(`${title}\n${content}`, 'utf8', {
     addBOM: true
   });
+  logger.warn('buffer: ' + buffer);
   const file = h.file(buffer, 'text/csv');
   file.attrs.title = `${team_name}.csv`;
-  try {
-    await session.send(file);
-  } catch (e) {
-    return '' + e;
-  }
+  file.attrs.base64 = buffer;
+  await session.send(file);
 
   return '导出结束';
 };
