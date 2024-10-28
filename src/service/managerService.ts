@@ -205,11 +205,17 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
 
   // 先存到本地
   const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
-  const file_name = `${team_name}_${new Date().toLocaleString(locale_settings.current)}.csv`;
+  const file_name = `${team_name}_${new Date()
+    .toLocaleString(locale_settings.current)
+    .replaceAll('/', '')
+    .replaceAll(' ', '')
+    .replaceAll(':', '')}.csv`;
   const file_path = path.join(root, file_name);
+  logger.info('filepath 1: ' + file_path);
   await fs.mkdir(root, { recursive: true });
   await fs.writeFile(file_path, buffer);
   const _file_path = pathToFileURL(path.resolve(root, file_name)).href;
+  logger.info('filepath 2: ' + _file_path);
   const file = h.file(_file_path);
   file.attrs.title = `${team_name}.csv`;
 
