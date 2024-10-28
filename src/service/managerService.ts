@@ -17,6 +17,9 @@ import Fuse from 'fuse.js';
 import { buildQuestion, QuestionType } from '../constant/question';
 import { locale_settings, date_locale_options } from '../utils/locale';
 import { parseDateTime } from '../utils/date';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import { pathToFileURL } from 'url';
 
 // 指挥开团
 const openTeamHandler = async (
@@ -199,11 +202,18 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const buffer = iconv.encode(`${title}\n${content}`, 'utf8', {
     addBOM: true
   });
-  logger.warn('buffer: ' + buffer);
-  const file = h.file(buffer, 'text/csv');
+
+  // 先存到本地
+  const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
+  const file_name = `${team_name}_${new Date().toLocaleString(locale_settings.current)}.csv`;
+  const file_path = path.join(root, file_name);
+  await fs.mkdir(root, { recursive: true });
+  await fs.writeFile(file_path, buffer);
+  const _file_path = pathToFileURL(path.resolve(root, file_name)).href;
+  const file = h.file(_file_path);
   file.attrs.title = `${team_name}.csv`;
-  file.attrs.base64 = buffer;
-  await session.send(file);
+
+  await session.send(_file_path);
 
   return '导出结束';
 };
