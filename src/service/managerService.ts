@@ -2,6 +2,7 @@ import { Argv, Context, h } from 'koishi';
 import { Config } from '../config/settings';
 import logger from '../utils/logger';
 import * as iconv from 'iconv-lite';
+import { createArrayCsvStringifier } from 'csv-writer';
 import { getTeamInfo, selectGroupName, selectCurrentTeam } from '../utils/team';
 import {
   closeSignup,
@@ -187,19 +188,18 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return '当前报名人数为: 0';
   }
   const map = parseAnswerMap(sign_up[0].content);
-  const title = Array.from(map.entries())
-    .map(entry => entry[1].name)
-    .join(',');
-  const content = sign_up
-    .map(s =>
-      Array.from(parseAnswerMap(s.content))
-        .map(entry => entry[1].preitter_answer)
-        .join(',')
-    )
-    .join('\n');
-  // 导出格式为utf8withBOM的csv
-  // 为了兼容excel
-  const buffer = iconv.encode(`${title}\n${content}`, 'utf8', {
+  const header = Array.from(map.entries()).map(entry => entry[1].name);
+  const records = sign_up.map(s =>
+    Array.from(parseAnswerMap(s.content)).map(entry => entry[1].preitter_answer)
+  );
+
+  const csvStringifier = createArrayCsvStringifier({
+    header
+  });
+
+  const csvContent =
+    csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(records);
+  const buffer = iconv.encode(csvContent, 'utf8', {
     addBOM: true
   });
 
