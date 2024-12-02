@@ -23,7 +23,7 @@ export const selectGroupName = async (
   session: Session
 ): Promise<string> => {
   const group_name_set = new Set<string>();
-  // 从群组内查找
+  // 从群组内查找 该群关联的团
   if (session.guildId) {
     Object.entries(config.group_config_map).forEach(([group_name, group]) => {
       if (
@@ -33,28 +33,24 @@ export const selectGroupName = async (
       }
     });
   }
-  // 从leader查找
-  if (group_name_set.size == 0) {
-    Object.entries(config.group_config_map).forEach(([group_name, group]) => {
-      if (group.admin == session.userId) {
-        group_name_set.add(group_name);
-      }
-      if (group.leaders.findIndex(l => l.user_id == session.userId) >= 0) {
-        group_name_set.add(group_name);
-      }
-    });
-  }
-  // 从member查找
-  if (group_name_set.size == 0) {
-    for (const [group_name, group] of Object.entries(config.group_config_map)) {
-      const member_list = await session.bot.getGuildMemberList(
-        group.chat_groups[0].group_id
-      );
-      if (
-        member_list.data.map(m => m.user.id.toString()).includes(session.userId)
-      ) {
-        group_name_set.add(group_name);
-      }
+  // 从leader查找 权限用户
+  Object.entries(config.group_config_map).forEach(([group_name, group]) => {
+    if (group.admin == session.userId) {
+      group_name_set.add(group_name);
+    }
+    if (group.leaders.findIndex(l => l.user_id == session.userId) >= 0) {
+      group_name_set.add(group_name);
+    }
+  });
+  // 从member查找 普通报名用户
+  for (const [group_name, group] of Object.entries(config.group_config_map)) {
+    const member_list = await session.bot.getGuildMemberList(
+      group.chat_groups[0].group_id
+    );
+    if (
+      member_list.data.map(m => m.user.id.toString()).includes(session.userId)
+    ) {
+      group_name_set.add(group_name);
     }
   }
   logger.debug('group_name_set:', group_name_set);
