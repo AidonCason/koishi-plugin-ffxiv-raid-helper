@@ -270,7 +270,7 @@ const atUserByName = async (
   if (user_names.length == 0) {
     return '请输入要查找的用户';
   }
-  const team = await selectCurrentTeam(ctx, config, session);
+  const team = await selectCurrentTeam(ctx, config, session, true);
   const team_name = team.team_name;
   const sign_up = await selectValidSignupByTeamName(ctx, team_name);
   if (!sign_up || sign_up.length == 0) {
