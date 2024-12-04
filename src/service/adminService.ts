@@ -14,6 +14,7 @@ import {
   selectByUserIdOrUserName
 } from '../dao/blacklistDAO';
 import { selectGroupName } from '../utils/team';
+import { checkGroupName } from '../utils/group';
 
 const deleteTeamHandler = async (
   ctx: Context,
@@ -80,7 +81,7 @@ const queryBlackListHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  if (!group_name) {
+  if (!group_name && !checkGroupName(config, group_name)) {
     group_name = await selectGroupName(ctx, config, session);
   }
   const black_list = await selectAllBlackList(ctx, group_name);
@@ -105,7 +106,7 @@ const addToBlackListHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  if (!group_name) {
+  if (!group_name && !checkGroupName(config, group_name)) {
     group_name = await selectGroupName(ctx, config, session);
   }
   const ask_info_question = buildQuestion({
@@ -141,7 +142,7 @@ const deleteBlackListHandler = async (
 ) => {
   if (!argv?.session) return;
   const session = argv.session;
-  if (!group_name) {
+  if (!group_name && !checkGroupName(config, group_name)) {
     group_name = await selectGroupName(ctx, config, session);
   }
   const black_list = await selectAllBlackList(ctx, group_name);

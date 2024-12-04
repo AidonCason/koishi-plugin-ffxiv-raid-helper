@@ -82,6 +82,13 @@ export const checkLeaderPermission = (
 };
 
 /**
+ * 检查团名是否存在
+ */
+export const checkGroupName = async (config: Config, group_name: string) => {
+  return Object.keys(config.group_config_map).includes(group_name);
+};
+
+/**
  * 获取团名
  */
 export const getGroupNameById = async (ctx: Context, id: number) => {
