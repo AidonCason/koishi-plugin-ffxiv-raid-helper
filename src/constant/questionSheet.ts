@@ -151,7 +151,7 @@ export const getSheet = (
       name: '留言',
       type: QuestionType.Text,
       content:
-        '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~(没有的话输入任意内容)',
+        '还有什么废话是你想说给指挥听的吗？有的话请在下面畅所欲言吧~(没有的话输入无，不要发图)',
       allow_empty: true
     }
   ];
