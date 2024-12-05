@@ -228,10 +228,10 @@ const kickGuildMemberHandler = async (
       .map(m => m.user.id.toString())
       .includes(userId)
   ) {
-    return '该用户不在此群';
-  } else {
     session.bot.kickGuildMember(guildId, userId, permanent);
-    return '执行成功';
+    return '执行提交成功';
+  } else {
+    return '该用户不在此群';
   }
 };
 
