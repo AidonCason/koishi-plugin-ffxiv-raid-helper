@@ -10,7 +10,6 @@ import {
   openSignupHandler,
   modifyMaxMembersHandler,
   modifyRaidTimeHandler,
-  kickGuildMemberHandler
 } from './service/managerService';
 import {
   applyHandler,
@@ -29,7 +28,8 @@ import {
   deleteBlackListHandler,
   deleteTeamHandler,
   modifyTeamLeaderHandler,
-  queryBlackListHandler
+  queryBlackListHandler,
+  kickGuildMemberHandler
 } from './service/adminService';
 import { parseDateTime } from './utils/date';
 
