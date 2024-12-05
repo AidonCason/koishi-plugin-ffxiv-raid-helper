@@ -9,7 +9,8 @@ import {
   atUserByName,
   openSignupHandler,
   modifyMaxMembersHandler,
-  modifyRaidTimeHandler
+  modifyRaidTimeHandler,
+  kickGuildMemberHandler
 } from './service/managerService';
 import {
   applyHandler,
@@ -128,6 +129,29 @@ export function commandSetup(ctx: Context, config: Config) {
     .action(async (argv, group_name: string) => {
       return await deleteBlackListHandler(ctx, config, argv, group_name);
     });
+
+  // 踢人
+  admin_command
+    .subcommand(
+      '踢人 <guild_id:string> <user_id:string> [permanent:string]',
+      '踢人',
+      {
+        permissions: ['raid-helper:admin']
+      }
+    )
+    .example('踢人 群号 用户id [禁止加群]\n踢人 123 456')
+    .action(
+      async (argv, guild_id: string, user_id: string, permanent: string) => {
+        return await kickGuildMemberHandler(
+          ctx,
+          config,
+          argv,
+          guild_id,
+          user_id,
+          permanent && permanent == '禁止加群'
+        );
+      }
+    );
 
   // 指挥操作 仅限在配置的群内或指挥私聊
   const leader_command = ctx

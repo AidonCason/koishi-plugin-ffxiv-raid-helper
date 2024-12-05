@@ -319,6 +319,43 @@ const atUserByName = async (
     .join(' ');
 };
 
+const kickGuildMemberHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv,
+  guildId: string,
+  userId: string,
+  permanent: boolean
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  const idx = Object.entries(config.group_config_map).findIndex(
+    ([, g]) => g.chat_groups.findIndex(x => x.group_id == guildId) >= 0
+  );
+  if (idx < 0) {
+    return '未找到对应群组';
+  }
+  const group = Object.entries(config.group_config_map)[idx][1];
+  if (
+    !(
+      group.admin == session.userId ||
+      group.leaders.findIndex(l => l.user_id == session.userId) >= 0
+    )
+  ) {
+    return '无该团管理权限';
+  }
+  if (
+    (await session.bot.getGuildMemberList(guildId)).data
+      .map(m => m.user.id.toString())
+      .includes(session.userId)
+  ) {
+    return '该用户不在本群';
+  } else {
+    session.bot.kickGuildMember(session.guildId, userId, permanent);
+    return '执行成功';
+  }
+};
+
 export {
   openTeamHandler,
   modifyMaxMembersHandler,
@@ -329,5 +366,6 @@ export {
   checkDetailHandler,
   exportHandler,
   pushMessageToAllSignup,
+  kickGuildMemberHandler,
   atUserByName
 };
