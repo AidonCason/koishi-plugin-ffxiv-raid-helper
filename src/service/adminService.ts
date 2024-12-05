@@ -15,6 +15,13 @@ import {
 } from '../dao/blacklistDAO';
 import { selectGroupName } from '../utils/team';
 import { checkGroupName } from '../utils/group';
+import {
+  createInnerGhost,
+  deleteInnerGhostById,
+  selectInnerGhostByGroupNameAndUserId,
+  selectAllInnerGhost
+} from '../dao/innerghostDAO';
+import { locale_settings } from '../utils/locale';
 
 const deleteTeamHandler = async (
   ctx: Context,
@@ -228,11 +235,136 @@ const kickGuildMemberHandler = async (
   }
 };
 
+const queryInnerGhostHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv,
+  group_name: string
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  if (!group_name || !checkGroupName(config, group_name)) {
+    group_name = await selectGroupName(ctx, config, session);
+  }
+  const black_list = await selectAllInnerGhost(ctx, group_name);
+  if (!black_list || black_list.length === 0) {
+    return '内鬼名单为空！';
+  }
+  return black_list
+    .map(
+      v =>
+        `${v.user_id} ${v.user_name}@${v.server} ${v.remark} ${v.expired_at.toLocaleString(
+          locale_settings.current
+        )}`
+    )
+    .join('\n');
+};
+
+const addToInnerGhostHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv,
+  group_name: string
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  if (!group_name || !checkGroupName(config, group_name)) {
+    group_name = await selectGroupName(ctx, config, session);
+  }
+  const ask_info_question = buildQuestion({
+    label: 'ask_info',
+    type: QuestionType.Text,
+    name: '输入信息',
+    content: '请输入用户QQ, 游戏名, 区服, 备注'
+  });
+  const info = await askOneQuestion(config, session, ask_info_question);
+  if (!info) {
+    return '取消添加';
+  }
+  const [user_id, user_name, server, remark] = info.preitter_answer.split(' ');
+  const check_add_question = buildQuestion({
+    label: 'check_add',
+    type: QuestionType.Boolean,
+    name: '是否确认添加',
+    content: `是否确认添加 ${user_id} ${user_name}@${server} ${remark}`
+  });
+  const confirm = await askOneQuestion(config, session, check_add_question);
+  if (!confirm || confirm.preitter_answer == '否') {
+    return '取消添加';
+  }
+  await createInnerGhost(ctx, group_name, user_id, user_name, server, remark);
+  return '添加成功！';
+};
+
+const deleteInnerGhostHandler = async (
+  ctx: Context,
+  config: Config,
+  argv: Argv,
+  group_name: string
+) => {
+  if (!argv?.session) return;
+  const session = argv.session;
+  if (!group_name || !checkGroupName(config, group_name)) {
+    group_name = await selectGroupName(ctx, config, session);
+  }
+  const inner_ghost = await selectAllInnerGhost(ctx, group_name);
+  if (!inner_ghost || inner_ghost.length === 0) {
+    return '内鬼名单为空！';
+  }
+  const ask_info_question = buildQuestion({
+    label: 'ask_info',
+    type: QuestionType.Text,
+    name: '输入信息',
+    content: '请输入用户QQ'
+  });
+  const info = await askOneQuestion(config, session, ask_info_question);
+  if (!info) {
+    return '取消删除';
+  }
+  const list = await selectInnerGhostByGroupNameAndUserId(
+    ctx,
+    group_name,
+    info.preitter_answer
+  );
+  if (!list || list.length === 0) {
+    return '内鬼名单中不存在该用户';
+  }
+  const choice_question = buildQuestion({
+    label: 'choice',
+    type: QuestionType.SignleChoice,
+    name: '选择',
+    content: '请选择要删除的用户',
+    answer_range_desc: list.map(
+      v => `${v.user_id} ${v.user_name}@${v.server} ${v.remark}`
+    )
+  });
+  const choice = await askOneQuestion(config, session, choice_question);
+  if (!choice) {
+    return '取消删除';
+  }
+  const delete_user = list[parseInt(choice.answer) - 1];
+  const check_delete_question = buildQuestion({
+    label: 'check_delete',
+    type: QuestionType.Boolean,
+    name: '是否确认删除',
+    content: `是否确认删除 ${delete_user.user_id} ${delete_user.user_name}@${delete_user.server} ${delete_user.remark}`
+  });
+  const confirm = await askOneQuestion(config, session, check_delete_question);
+  if (!confirm || confirm.preitter_answer == '否') {
+    return '取消删除';
+  }
+  await deleteInnerGhostById(ctx, delete_user.id);
+  return '删除成功！';
+};
+
 export {
   deleteTeamHandler,
   modifyTeamLeaderHandler,
   queryBlackListHandler,
   addToBlackListHandler,
   deleteBlackListHandler,
-  kickGuildMemberHandler
+  kickGuildMemberHandler,
+  queryInnerGhostHandler,
+  addToInnerGhostHandler,
+  deleteInnerGhostHandler
 };

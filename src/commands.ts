@@ -9,7 +9,7 @@ import {
   atUserByName,
   openSignupHandler,
   modifyMaxMembersHandler,
-  modifyRaidTimeHandler,
+  modifyRaidTimeHandler
 } from './service/managerService';
 import {
   applyHandler,
@@ -29,7 +29,10 @@ import {
   deleteTeamHandler,
   modifyTeamLeaderHandler,
   queryBlackListHandler,
-  kickGuildMemberHandler
+  kickGuildMemberHandler,
+  queryInnerGhostHandler,
+  addToInnerGhostHandler,
+  deleteInnerGhostHandler
 } from './service/adminService';
 import { parseDateTime } from './utils/date';
 
@@ -128,6 +131,35 @@ export function commandSetup(ctx: Context, config: Config) {
     .example('删除黑名单')
     .action(async (argv, group_name: string) => {
       return await deleteBlackListHandler(ctx, config, argv, group_name);
+    });
+
+  // 查看内鬼名单
+  admin_command
+    .subcommand('查看内鬼名单 [group_name:string]', '查看内鬼名单', {
+      permissions: ['raid-helper:admin']
+    })
+    .action(async (argv, group_name: string) => {
+      return await queryInnerGhostHandler(ctx, config, argv, group_name);
+    });
+
+  // 添加内鬼名单
+  admin_command
+    .subcommand('添加内鬼名单 [group_name:string]', '添加内鬼名单', {
+      permissions: ['raid-helper:admin']
+    })
+    .example('添加内鬼名单 花火')
+    .action(async (argv, group_name: string) => {
+      return await addToInnerGhostHandler(ctx, config, argv, group_name);
+    });
+
+  // 删除内鬼名单
+  admin_command
+    .subcommand('删除内鬼名单 [group_name:string]', '删除内鬼名单', {
+      permissions: ['raid-helper:admin']
+    })
+    .example('删除内鬼名单')
+    .action(async (argv, group_name: string) => {
+      return await deleteInnerGhostHandler(ctx, config, argv, group_name);
     });
 
   // 踢人

@@ -20,6 +20,10 @@ import {
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion, parseAnswerMap } from '../utils/question';
 import { checkIfInBlackList } from './blackListService';
+import {
+  refreshInnerGhostById,
+  selectInnerGhostByGroupNameAndUserId
+} from '../dao/innerghostDAO';
 
 const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
@@ -73,11 +77,92 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (self_signups && self_signups.length > 3) {
     return '取消报名过多，无法重新报名，如有需要请联系指挥说明';
   }
+  // 查询内鬼
+  const inner_ghost = await selectInnerGhostByGroupNameAndUserId(
+    ctx,
+    team.group_name,
+    session.userId
+  );
   // 开始问问题
   const sheet = [...getSheet(team, config)].reverse();
   const results: Map<string, Answer> = new Map();
   while (sheet.length > 0) {
     const question = sheet.pop();
+
+    // 内鬼跳过部分问题
+    if (inner_ghost && inner_ghost.length > 0) {
+      if (question.label == 'NEWBIE') {
+        // 初见，显然
+        results.set(question.label, {
+          label: question.label,
+          name: question.name,
+          answer: '0',
+          preitter_answer: '否'
+        });
+        continue;
+      }
+      if (question.label == 'SERVER') {
+        // 服务器
+        results.set(question.label, {
+          label: question.label,
+          name: question.name,
+          answer: inner_ghost[0].server,
+          preitter_answer: inner_ghost[0].server
+        });
+        continue;
+      }
+      if (question.label == 'NICKNAME') {
+        // 昵称
+        results.set(question.label, {
+          label: question.label,
+          name: question.name,
+          answer: inner_ghost[0].user_name,
+          preitter_answer: inner_ghost[0].user_name
+        });
+        continue;
+      }
+      if (question.label == 'DYNAMIC_DUTY') {
+        // 接受调剂
+        results.set(question.label, {
+          label: question.label,
+          name: question.name,
+          answer: '1',
+          preitter_answer: '是'
+        });
+        continue;
+      }
+      if (question.label == 'MAIN_JOB') {
+        // 主职，不填，职能即可
+        results.set(question.label, {
+          label: question.label,
+          name: question.name,
+          answer: '',
+          preitter_answer: ''
+        });
+        continue;
+      }
+      if (question.label == 'SECOND_JOB') {
+        // 副职，同上
+        results.set(question.label, {
+          label: question.label,
+          name: question.name,
+          answer: '',
+          preitter_answer: ''
+        });
+        continue;
+      }
+      if (question.label == 'RED_STAR') {
+        // 红章，无所谓
+        results.set(question.label, {
+          label: question.label,
+          name: question.name,
+          answer: '',
+          preitter_answer: ''
+        });
+        continue;
+      }
+    }
+
     const res_code = await onQuestion(config, session, question, results);
     if (res_code == ErrorCode.MaxRetry) {
       return '失败次数过多，报名退出';
@@ -139,6 +224,9 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     team.id,
     `${team_name} ${user_name}@${server}（${session.userId}）报名成功`
   );
+  if (inner_ghost && inner_ghost.length > 0) {
+    refreshInnerGhostById(ctx, inner_ghost[0].id);
+  }
   return '报名提交成功!请关注群公告里面的报名结果~';
 };
 

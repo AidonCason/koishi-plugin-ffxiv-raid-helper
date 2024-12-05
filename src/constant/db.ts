@@ -9,12 +9,15 @@ export const team_table_name = `${table_prefix}team`;
 export const sign_up_table_name = `${table_prefix}sign_up`;
 // 黑名单表名称
 export const black_list_table_name = `${table_prefix}black_list`;
+// 内鬼表名称
+export const inner_ghost_table_name = `${table_prefix}inner_ghost`;
 
 declare module 'koishi' {
   interface Tables {
     [team_table_name]: TeamListTable;
     [sign_up_table_name]: TeamSignUpTable;
     [black_list_table_name]: BlackListTable;
+    [inner_ghost_table_name]: InnerGhostTable;
   }
 }
 
@@ -52,6 +55,19 @@ export interface BlackListTable {
   server: string;
   reason: string;
   is_canceled: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// 内鬼名单
+export interface InnerGhostTable {
+  id: number;
+  group_name: string;
+  user_id: string;
+  user_name: string;
+  server: string;
+  remark: string;
+  expired_at: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -111,6 +127,25 @@ export function dbSetup(ctx: Context) {
         type: 'boolean',
         initial: false
       },
+      created_at: 'timestamp',
+      updated_at: 'timestamp'
+    },
+    {
+      primary: 'id',
+      autoInc: true
+    }
+  );
+
+  ctx.model.extend(
+    inner_ghost_table_name,
+    {
+      id: 'unsigned',
+      group_name: 'string',
+      user_id: 'string',
+      user_name: 'string',
+      server: 'string',
+      remark: 'text',
+      expired_at: 'timestamp',
       created_at: 'timestamp',
       updated_at: 'timestamp'
     },
