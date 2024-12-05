@@ -226,11 +226,11 @@ const kickGuildMemberHandler = async (
   if (
     (await session.bot.getGuildMemberList(guildId)).data
       .map(m => m.user.id.toString())
-      .includes(session.userId)
+      .includes(userId)
   ) {
-    return '该用户不在本群';
+    return '该用户不在此群';
   } else {
-    session.bot.kickGuildMember(session.guildId, userId, permanent);
+    session.bot.kickGuildMember(guildId, userId, permanent);
     return '执行成功';
   }
 };
