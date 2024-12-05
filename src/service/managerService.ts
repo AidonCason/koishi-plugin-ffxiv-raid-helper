@@ -247,9 +247,13 @@ const pushMessageToAllSignup = async (
     if (session.content == '退出') {
       session.sendQueued('取消推送', config.message_interval);
     }
+    let i = config.message_interval;
     sign_up.forEach(async s => {
       logger.debug('send to:', s.user_id);
-      session.bot.sendPrivateMessage(s.user_id, session.content);
+      setTimeout(() => {
+        session.bot.sendPrivateMessage(s.user_id, session.content);
+      }, i);
+      i += i;
     });
     session.sendQueued('推送成功', config.message_interval);
   });
