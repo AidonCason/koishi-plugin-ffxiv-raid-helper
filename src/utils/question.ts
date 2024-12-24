@@ -28,7 +28,8 @@ export const onQuestion = async (
     question.construct_content(results),
     config.message_interval
   );
-  const res_accept = await session.prompt();
+  const timeout = question.label == 'COMMENT' ? 300 * 1000 : 60 * 1000;
+  const res_accept = await session.prompt(timeout);
   if (!res_accept) {
     if (question.allow_empty) {
       // 允许为空超时存入空白答案
