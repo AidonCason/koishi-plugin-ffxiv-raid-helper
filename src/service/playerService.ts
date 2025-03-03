@@ -13,9 +13,9 @@ import { getSheet } from '../constant/questionSheet';
 import {
   cancelSignup,
   createSignup,
-  selectAllCanceledSignupByTeamNameAndUserId,
-  selectAllValidSignupByTeamNameAndUserId,
-  selectValidSignupByTeamName
+  selectAllCanceledSignupByTeamIdAndUserId,
+  selectAllValidSignupByTeamIdAndUserId,
+  selectValidSignupByTeamId
 } from '../dao/signupDAO';
 import logger from '../utils/logger';
 import { askOneQuestion, onQuestion, parseAnswerMap } from '../utils/question';
@@ -39,8 +39,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (now > deadline) {
     return '开团前24小时关闭报名功能，如有特殊情况请联系指挥';
   }
-  const team_name = team.team_name;
-  const sign_ups = await selectValidSignupByTeamName(ctx, team_name);
+  const sign_ups = await selectValidSignupByTeamId(ctx, team.id);
   const self = sign_ups.find(s => s.user_id == session.userId);
   logger.debug('self:', self);
   // 报名过了，询问是否重新报名
@@ -69,9 +68,9 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   }
   // 开始报名了
   // 检查取消报名次数
-  const self_signups = await selectAllCanceledSignupByTeamNameAndUserId(
+  const self_signups = await selectAllCanceledSignupByTeamIdAndUserId(
     ctx,
-    team_name,
+    team.id,
     session.userId
   );
   if (self_signups && self_signups.length > 3) {
@@ -204,7 +203,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
       config,
       session.bot,
       team.id,
-      `${team_name} ${user_name}@${server}（${session.userId}）报名失败，黑名单中的用户`
+      `${team.team_name} ${user_name}@${server}（${session.userId}）报名失败，黑名单中的用户`
     );
     return '报名失败，黑名单中的用户，请联系指挥';
   }
@@ -212,7 +211,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   // 保存到数据库
   await createSignup(
     ctx,
-    team_name,
+    team.id,
     session.userId,
     JSON.stringify(Array.from(results))
   );
@@ -222,7 +221,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
     config,
     session.bot,
     team.id,
-    `${team_name} ${user_name}@${server}（${session.userId}）报名成功`
+    `${team.team_name} ${user_name}@${server}（${session.userId}）报名成功`
   );
   if (inner_ghost && inner_ghost.length > 0) {
     refreshInnerGhostById(ctx, inner_ghost[0].id);
@@ -234,10 +233,9 @@ const checkSelfHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  const team_name = team.team_name;
-  const sign_up = await selectAllValidSignupByTeamNameAndUserId(
+  const sign_up = await selectAllValidSignupByTeamIdAndUserId(
     ctx,
-    team_name,
+    team.id,
     session.userId
   );
   if (sign_up && sign_up.length > 0) {
@@ -260,10 +258,9 @@ const cancelSignupHandler = async (
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  const team_name = team.team_name;
-  const sign_ups = await selectAllValidSignupByTeamNameAndUserId(
+  const sign_ups = await selectAllValidSignupByTeamIdAndUserId(
     ctx,
-    team_name,
+    team.id,
     session.userId
   );
   if (!sign_ups || sign_ups.length == 0) {
@@ -290,7 +287,7 @@ const cancelSignupHandler = async (
     config,
     session.bot,
     team.id,
-    `${team_name} ${user_name}@${server}（${session.userId}）取消报名`
+    `${team.team_name} ${user_name}@${server}（${session.userId}）取消报名`
   );
   return '已取消报名申请';
 };

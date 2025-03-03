@@ -3,50 +3,33 @@ import { TeamSignUpTable, sign_up_table_name } from '../constant/db';
 
 /**
  * 查询该团所有有效的报名申请
- * @param team_name 团名
+ * @param team_id 团id
  * @returns RaidSignUpTable[]
  */
-export const selectValidSignupByTeamName = async (
+export const selectValidSignupByTeamId = async (
   ctx: Context,
-  team_name: string
+  team_id: number
 ): Promise<TeamSignUpTable[]> => {
   return await ctx.database.get(sign_up_table_name, {
-    team_name: { $eq: team_name },
+    team_name: { $eq: `${team_id}` },
     is_canceled: { $eq: false }
-  });
-};
-
-/**
- * 查询该团某成员所有报名申请
- * @param team_name 团名
- * @param user_id 用户id，一般为qq号
- * @returns RaidSignUpTable[]
- */
-export const selectAllSignupByTeamNameAndUserId = async (
-  ctx: Context,
-  team_name: string,
-  user_id: string
-): Promise<TeamSignUpTable[]> => {
-  return await ctx.database.get(sign_up_table_name, {
-    team_name: { $eq: team_name },
-    user_id: { $eq: user_id }
   });
 };
 
 /**
  * 查询该团某成员所有有效的报名申请
  * @param ctx
- * @param team_name 团名
+ * @param team_id 团id
  * @param user_id 用户id，一般为qq号
  * @returns RaidSignUpTable[]
  */
-export const selectAllValidSignupByTeamNameAndUserId = async (
+export const selectAllValidSignupByTeamIdAndUserId = async (
   ctx: Context,
-  team_name: string,
+  team_id: number,
   user_id: string
 ): Promise<TeamSignUpTable[]> => {
   return await ctx.database.get(sign_up_table_name, {
-    team_name: { $eq: team_name },
+    team_name: { $eq: `${team_id}` },
     user_id: { $eq: user_id },
     is_canceled: { $eq: false }
   });
@@ -55,17 +38,17 @@ export const selectAllValidSignupByTeamNameAndUserId = async (
 /**
  * 查询该团某成员所有取消的报名申请
  * @param ctx
- * @param team_name 团名
+ * @param team_id 团id
  * @param user_id 用户id，一般为qq号
  * @returns RaidSignUpTable[]
  */
-export const selectAllCanceledSignupByTeamNameAndUserId = async (
+export const selectAllCanceledSignupByTeamIdAndUserId = async (
   ctx: Context,
-  team_name: string,
+  team_id: number,
   user_id: string
 ): Promise<TeamSignUpTable[]> => {
   return await ctx.database.get(sign_up_table_name, {
-    team_name: { $eq: team_name },
+    team_name: { $eq: `${team_id}` },
     user_id: { $eq: user_id },
     is_canceled: { $eq: true }
   });
@@ -73,18 +56,18 @@ export const selectAllCanceledSignupByTeamNameAndUserId = async (
 
 /**
  * 创建新的报名申请
- * @param team_name 团名
+ * @param team_id 团id
  * @param user_id 用户id，一般为qq号
  * @param content 报名内容,json格式
  */
 export const createSignup = async (
   ctx: Context,
-  team_name: string,
+  team_id: number,
   user_id: string,
   content: string
 ): Promise<TeamSignUpTable> => {
   return await ctx.database.create(sign_up_table_name, {
-    team_name,
+    team_name: `${team_id}`,
     user_id,
     content,
     is_canceled: false,
@@ -110,16 +93,16 @@ export const cancelSignup = async (
 
 /**
  * 查询指定团的报名数
- * @param team_name 团名
+ * @param team_id 团id
  * @returns number
  */
 export const countByTeamName = async (
   ctx: Context,
-  team_name: string
+  team_id: number
 ): Promise<number> => {
   return await ctx.database
     .select(sign_up_table_name)
-    .where({ team_name, is_canceled: false })
+    .where({ team_name: `${team_id}`, is_canceled: false })
     .execute(row => $.count(row.id));
 };
 
@@ -129,7 +112,7 @@ export const countByTeamName = async (
  */
 export const countByRaids = async (
   ctx: Context,
-  raids: { team_name: string }[]
+  raids: { id: number }[]
 ): Promise<{ team_name: string; count: number }[]> => {
   return await ctx.database
     .select(sign_up_table_name)
@@ -138,7 +121,7 @@ export const countByRaids = async (
     .where(row =>
       $.in(
         row.team_name,
-        raids.map(raid => raid.team_name)
+        raids.map(raid => `${raid.id}`)
       )
     )
     .execute();
@@ -147,14 +130,14 @@ export const countByRaids = async (
 /**
  * 查询某团指定时间范围内的所有报名
  */
-export const selectAllValidSignupByTeamNameAndDateBetween = async (
+export const selectAllValidSignupByTeamIdAndDateBetween = async (
   ctx: Context,
-  team_name: string,
+  team_id: number,
   begin_time: Date,
   end_time: Date
 ): Promise<TeamSignUpTable[]> => {
   return await ctx.database.get(sign_up_table_name, {
-    team_name: { $eq: team_name },
+    team_name: { $eq: `${team_id}` },
     is_canceled: { $eq: false },
     created_at: { $gte: begin_time, $lt: end_time }
   });
@@ -165,12 +148,12 @@ export const selectAllValidSignupByTeamNameAndDateBetween = async (
  */
 export const selectSignupCountByUser = async (
   ctx: Context,
-  team_name: string
+  team_id: number
 ): Promise<{ user_id: string; count: number; is_success: boolean }[]> => {
   return await ctx.database
     .select(sign_up_table_name)
     .where({
-      team_name
+      team_name: `${team_id}`
     })
     .groupBy(['user_id', 'is_canceled'], {
       count: row => $.count(row.id),

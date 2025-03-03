@@ -1,7 +1,7 @@
 import { Context, Session, SessionError } from 'koishi';
 import { TeamListTable } from '../constant/db';
 import { Config } from '../config/settings';
-import { selectByDateAfterAndGroupName } from '../dao/teamDAO';
+import { selectByDateAfterAndGroupName, selectById } from '../dao/teamDAO';
 import { countByRaids } from '../dao/signupDAO';
 import { buildQuestion, QuestionType } from '../constant/question';
 import { askOneQuestion } from './question';
@@ -12,8 +12,8 @@ import logger from './logger';
 export const getTeamInfo = async (ctx: Context, teams: TeamListTable[]) => {
   const sign_ups = await countByRaids(ctx, teams);
   return teams.map(
-    team =>
-      `${team.team_region} - [${team.group_name}] ${team.team_name} 时间： ${team.raid_start_time.toLocaleString(locale_settings.current, date_locale_options)} 报名人数： ${sign_ups.find(d => d.team_name == team.team_name)?.count ?? 0}/${team.max_members}`
+    async team =>
+      `${team.team_region} - [${team.group_name}] ${(await selectById(ctx, parseInt(team.team_name)))[0].id} 时间： ${team.raid_start_time.toLocaleString(locale_settings.current, date_locale_options)} 报名人数： ${sign_ups.find(d => d.team_name == team.team_name)?.count ?? 0}/${team.max_members}`
   );
 };
 

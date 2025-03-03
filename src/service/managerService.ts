@@ -12,7 +12,7 @@ import {
   selectByGroupNameAndTeamName,
   updateTeam
 } from '../dao/teamDAO';
-import { selectValidSignupByTeamName } from '../dao/signupDAO';
+import { selectValidSignupByTeamId } from '../dao/signupDAO';
 import { askOneQuestion, parseAnswerMap } from '../utils/question';
 import Fuse from 'fuse.js';
 import { buildQuestion, QuestionType } from '../constant/question';
@@ -159,8 +159,7 @@ const checkDetailHandler = async (ctx: Context, config: Config, argv: Argv) => {
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  const team_name = team.team_name;
-  const sign_up = await selectValidSignupByTeamName(ctx, team_name);
+  const sign_up = await selectValidSignupByTeamId(ctx, team.id);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   }
@@ -182,8 +181,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
     return '尚未支持的导出平台';
   }
   const team = await selectCurrentTeam(ctx, config, session);
-  const team_name = team.team_name;
-  const sign_up = await selectValidSignupByTeamName(ctx, team_name);
+  const sign_up = await selectValidSignupByTeamId(ctx, team.id);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   }
@@ -205,7 +203,7 @@ const exportHandler = async (ctx: Context, config: Config, argv: Argv) => {
 
   // 先存到本地
   const root = path.join(ctx.baseDir, 'temp', 'ffxiv-raid-helper');
-  const file_name = `${team_name}_${new Date()
+  const file_name = `${team.team_name}_${new Date()
     .toLocaleString(locale_settings.current)
     .replaceAll('/', '')
     .replaceAll(' ', '')
@@ -233,8 +231,7 @@ const pushMessageToAllSignup = async (
   if (!argv?.session) return;
   const session = argv.session;
   const team = await selectCurrentTeam(ctx, config, session);
-  const team_name = team.team_name;
-  const sign_up = await selectValidSignupByTeamName(ctx, team_name);
+  const sign_up = await selectValidSignupByTeamId(ctx, team.id);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   }
@@ -275,8 +272,7 @@ const atUserByName = async (
     return '请输入要查找的用户';
   }
   const team = await selectCurrentTeam(ctx, config, session, true, 180);
-  const team_name = team.team_name;
-  const sign_up = await selectValidSignupByTeamName(ctx, team_name);
+  const sign_up = await selectValidSignupByTeamId(ctx, team.id);
   if (!sign_up || sign_up.length == 0) {
     return '当前报名人数为: 0';
   }

@@ -7,9 +7,9 @@ import {
   selectByDateBetween
 } from '../dao/teamDAO';
 import {
-  selectAllValidSignupByTeamNameAndDateBetween,
+  selectAllValidSignupByTeamIdAndDateBetween,
   selectSignupCountByUser,
-  selectValidSignupByTeamName
+  selectValidSignupByTeamId
 } from '../dao/signupDAO';
 import {
   getBeginNoticeGroups,
@@ -109,7 +109,7 @@ const beginNoticeBefore = async (
       noticeToGroup(ctx, config, bot, g, msg);
     });
 
-    const sign_ups = await selectValidSignupByTeamName(ctx, e.team_name);
+    const sign_ups = await selectValidSignupByTeamId(ctx, e.id);
     sign_ups.forEach(async s => {
       noticeToPrivage(ctx, config, bot, s.user_id, msg);
     });
@@ -134,14 +134,14 @@ const signupNoticeWithTimer = async (ctx: Context, config: Config) => {
       const begin_time = new Date();
       begin_time.setHours(begin_time.getHours() - 24);
       const end_time = new Date();
-      const sign_ups = await selectAllValidSignupByTeamNameAndDateBetween(
+      const sign_ups = await selectAllValidSignupByTeamIdAndDateBetween(
         ctx,
-        team.team_name,
+        team.id,
         begin_time,
         end_time
       );
       if (sign_ups.length == 0) continue;
-      const sign_up_count = await selectSignupCountByUser(ctx, team.team_name);
+      const sign_up_count = await selectSignupCountByUser(ctx, team.id);
       // 合并成一条消息，显示报名次数
       const sign_up_msg = sign_ups
         .map(s => {
