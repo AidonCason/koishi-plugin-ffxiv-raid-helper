@@ -55,11 +55,21 @@ const openTeamHandler = async (
   if (!confirm || confirm.preitter_answer == '否') {
     return '取消开团';
   }
+  // 报名人数上限
+  let team_member_num = 0;
+  switch (config.group_config_map[group_name].group_type) {
+    case 'common':
+      team_member_num = 23;
+    case 'queen':
+      team_member_num = 40;
+    case 'cloud':
+      team_member_num = 23;
+  }
   await createTeam(
     ctx,
     group_name,
     team_name,
-    40,
+    team_member_num,
     session.userId,
     raid_time,
     region_name

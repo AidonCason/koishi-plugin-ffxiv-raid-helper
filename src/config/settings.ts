@@ -7,6 +7,7 @@ export interface Config {
     [key: string]: {
       platform: 'onebot' | 'sandbox';
       admin: string;
+      group_type: 'common' | 'queen' | 'cloud';
       leaders: {
         user_id: string;
         admin: boolean;
@@ -94,6 +95,9 @@ export const Config: Schema<Config> = Schema.intersect([
           .pattern(not_empty_reg)
           .description('团长的user_id')
           .required(),
+        group_type: Schema.union(['common', 'queen', 'cloud'])
+          .description('团类型')
+          .default('queen'),
         leaders: Schema.array(
           Schema.object({
             user_id: Schema.string()
