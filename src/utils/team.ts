@@ -87,7 +87,8 @@ export const selectCurrentTeam = async (
   ctx: Context,
   config: Config,
   session: Session,
-  onlyCurrentGuild: boolean = false
+  onlyCurrentGuild: boolean = false,
+  delay: number = 0
 ): Promise<TeamListTable> => {
   const group_name = await selectGroupName(
     ctx,
@@ -95,11 +96,9 @@ export const selectCurrentTeam = async (
     session,
     onlyCurrentGuild
   );
-  const teams = await selectByDateAfterAndGroupName(
-    ctx,
-    new Date(),
-    group_name
-  );
+  const time = new Date();
+  time.setMinutes(time.getMinutes() + delay);
+  const teams = await selectByDateAfterAndGroupName(ctx, time, group_name);
   if (!teams || teams.length == 0) {
     throw new SessionError('未查询到当前有队伍');
   }
