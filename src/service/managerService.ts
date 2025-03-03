@@ -60,8 +60,10 @@ const openTeamHandler = async (
   switch (config.group_config_map[group_name].group_type) {
     case 'common':
       team_member_num = 23;
+      break;
     case 'queen':
       team_member_num = 40;
+      break;
     case 'cloud':
       team_member_num = 23;
   }
