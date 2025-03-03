@@ -37,7 +37,7 @@ const applyHandler = async (ctx: Context, config: Config, argv: Argv) => {
   const deadline = new Date(team.raid_start_time);
   deadline.setHours(deadline.getHours() - 24);
   if (now > deadline) {
-    return '开团前24小时截止报名，如有特殊情况请联系指挥';
+    return '开团前24小时关闭报名功能，如有特殊情况请联系指挥';
   }
   const team_name = team.team_name;
   const sign_ups = await selectValidSignupByTeamName(ctx, team_name);
@@ -268,6 +268,16 @@ const cancelSignupHandler = async (
   );
   if (!sign_ups || sign_ups.length == 0) {
     return '未报名该团!';
+  }
+  if (!team.allow_sign_up) {
+    return '该团已关闭报名，若要取消报名，请联系指挥';
+  }
+  // 开团前24小时截止报名
+  const now = new Date();
+  const deadline = new Date(team.raid_start_time);
+  deadline.setHours(deadline.getHours() - 24);
+  if (now > deadline) {
+    return '开团前24小时关闭报名功能，如有特殊情况请联系指挥';
   }
   for (const sign_up of sign_ups) {
     await cancelSignup(ctx, sign_up.id);
