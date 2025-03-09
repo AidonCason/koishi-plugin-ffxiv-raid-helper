@@ -97,7 +97,7 @@ export const selectCurrentTeam = async (
     onlyCurrentGuild
   );
   const time = new Date();
-  time.setMinutes(time.getMinutes() + delay);
+  time.setMinutes(time.getMinutes() - delay);
   const teams = await selectByDateAfterAndGroupName(ctx, time, group_name);
   if (!teams || teams.length == 0) {
     throw new SessionError('未查询到当前有队伍');
