@@ -1,11 +1,8 @@
 {
   "name": "koishi-plugin-ffxiv-raid-helper",
   "description": "ff14拼团小助手",
-  "version": "0.5.6",
   "main": "lib/index.js",
-  "version": "0.6.0",
-  "version": "0.6.1",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
